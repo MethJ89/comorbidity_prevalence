@@ -1,25 +1,36 @@
+
+# Load  packages
 library(shiny)
-runApp("~/Documents/GitHub/summer_thesis/scripts", display.mode = "showcase")
-
-# runExample("01_hello")      # a histogram
-# runExample("02_text")       # tables and data frames
-# runExample("03_reactivity") # a reactive expression
-# runExample("04_mpg")        # global variables
-# runExample("05_sliders")    # slider bars
-# runExample("06_tabsets")    # tabbed panels
-# runExample("07_widgets")    # help text and submit buttons
-# runExample("08_html")       # Shiny app built from HTML
-# runExample("09_upload")     # file upload wizard
-# runExample("10_download")   # file download wizard
-# runExample("11_timer")      # an automated timer
-
-
-
 library(tidyr)
 library(ggplot2)
 
-p1 <- ggplot(data, aes(x="age_group", y="comorbidity_prop", colour = 'region_cat')) +
-  geom_line() +
-  ggtitle("Morbidity Prevalance by Age Group")
+# Import files 
+Combined_comorbidity_age_region <- read_excel("Documents/GitHub/summer_thesis/data/Combined_comorbidity_age_region.xlsx")
+bmi_cat <- read_excel("Documents/GitHub/summer_thesis/data/bmi_cat.xlsx")
+ethnicity <- read_excel("Documents/GitHub/summer_thesis/data/ethnicity.xlsx")
+sm_cat <- read_excel("Documents/GitHub/summer_thesis/data/sm_cat.xlsx")
+# Rename file 
+data <- Combined_comorbidity_age_region
 
+# Run saved script in showcase mode
+runApp("~/Documents/GitHub/summer_thesis/scripts", display.mode = "showcase")
+
+# Summarise 'data' 
+summary(data)
+
+# Change comorbidity_yes column from character to numeric 
+# Some values (<5) have been converted to NA
+data$comorbidity_yes <- as.numeric(data$comorbidity_yes)
+
+# Create histogram for morbidities with age group 
+p1 <- ggplot(data, aes(x="age_group", y="comorbidity_yes", colour = 'region_cat')) +
+  geom_histogram() +
+  ggtitle("Morbidity Prevalance by Age Group")
+# Print graph 
 p1
+
+
+# Checking number of categories 
+table(data$age_group)
+
+
