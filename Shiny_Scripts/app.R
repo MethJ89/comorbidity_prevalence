@@ -40,8 +40,13 @@ ui <- fluidPage(
                                 h3("Regions"), 
                                 choices = list("England" = 1, 
                                                "Scotland" = 2,
-                                               "Wales" = 3),
-                                selected = 1)
+                                               "Wales" = 3,
+                                               "N.Ireland" = 4),
+                                selected = 1),
+            
+            sliderInput("range",
+                        label = "Age Range",
+                        min = 0, max = 100, value = c(0, 100))
         ),
         
         mainPanel(
