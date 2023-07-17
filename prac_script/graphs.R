@@ -1,4 +1,6 @@
 
+################  INSTALL AND LOAD PACKAGES ################  
+
 # Load  packages
 library(shiny)
 library(tidyr)
@@ -6,6 +8,7 @@ library(ggplot2)
 library(tidyverse)
 library(readxl)
 
+################  IMPORT & CLEAN DATA ################  
 
 # Import files 
 Combined_comorbidity_age_region <- read_excel("~/Documents/GitHub/summer_thesis/data/Combined_comorbidity_age_region.xlsx")
@@ -15,18 +18,16 @@ sm_cat <- read_excel("~/Documents/GitHub/summer_thesis/data/sm_cat.xlsx")
 # Rename file 
 data <- Combined_comorbidity_age_region
 
-
 # Run saved script in showcase mode
-runApp("~/Documents/GitHub/summer_thesis/shiny_scripts", display.mode = "showcase")
-
+# runApp("~/Documents/GitHub/summer_thesis/shiny_scripts", display.mode = "showcase")
 
 # Summarise 'data' 
-sapply(data, function(x) sapply(x, class))
-
+summary(data)
 
 # Change comorbidity_yes column from character to numeric 
 # Some values (<5) have been converted to NA
 data$comorbidity_yes <- as.numeric(data$comorbidity_yes)
+
 # Convert age_group and region_cat from 'character' to factor column type 
 data$age_group <- as.factor(data$age_group)
 data$region_cat <- as.factor(data$region_cat)
@@ -41,56 +42,186 @@ table(data$comorbidity)
 # Changed all 'bmi_40' to 'bmi40' to merge into one category 
 data$comorbidity[data$comorbidity == 'bmi_40'] <- 'bmi40'
 
-# Create histogram for morbidities with age group 
-p1 <- ggplot(data, aes(x="age_group", y="comorbidity_yes", colour = 'region_cat')) +
-  geom_histogram() +
-  ggtitle("Morbidity Prevalance by Age Group")
-# Print graph 
-p1
 
+################ CREATE GRAPHS ################  
 
-# Create histogram for morbidities with age group 
-p2 <- ggplot(ethnicity, aes(x="eth5_cat")) +
-  geom_histogram()
-# Print graph 
-p2
+######## Fig 2 Plots: Comorbidity Prevalence by Age in 2019 ######## 
 
+######## Cancer (previous 1 yr) ########
 
+## Filter data to relevant subset 
+subset_can1y <- data %>%
+  filter(year==2019 & comorbidity=="cancerlastyr" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
 
-################################################################
-################################################################
- 
-# Example Plots 
-
-# First test 
-p1 <- ggplot(ChickWeight, aes(x=Time, y=weight, colour=Diet, group=Chick)) +
+## Generate plot
+can1y = ggplot(subset_can1y, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
   geom_line() +
-  ggtitle("Growth curve for individual chicks")
-p1
+  ggtitle("Cancer (previous 1y)") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+can1y
 
-# Second test
-p2 <- ggplot(ChickWeight, aes(x=Time, y=weight, colour=Diet)) +
-  geom_point(alpha=.3) +
-  geom_smooth(alpha=.2, size=1) +
-  ggtitle("Fitted growth curve per diet")
-p2
+######## Cancer (previous 5 yr) ########
 
-# Third test
-p3 <- ggplot(subset(ChickWeight, Time==21), aes(x=weight, colour=Diet)) +
-  geom_density() +
-  ggtitle("Final weight, by diet")
-p3
+## Filter data to relevant subset 
+subset_can5y <- data %>%
+  filter(year==2019 & comorbidity=="cancerlast5yrs" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
 
-# Fourth test
-p4 <- ggplot(subset(ChickWeight, Time==21), aes(x=weight, fill=Diet)) +
-  geom_histogram(colour="black", binwidth=50) +
-  facet_grid(Diet ~ .) +
-  ggtitle("Final weight, by diet") +
-  theme(legend.position="none")    
-p4
+## Generate plot
+can5y = ggplot(subset_can5y, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Cancer (previous 5y)") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+can5y
 
-# Plot all graphs at once
-multiplot(p1, p2, p3, p4, cols=2)
+
+######## Chronic Heart Disease ########
+
+## Filter data to relevant subset 
+subset_heart <- data %>%
+  filter(year==2019 & comorbidity=="heart" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+heart = ggplot(subset_heart, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Chronic Heart Disease") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+heart
+
+
+######## Current Asthma ########
+
+## Filter data to relevant subset 
+subset_asthma <- data %>%
+  filter(year==2019 & comorbidity=="asthma_ever" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+asthma = ggplot(subset_asthma, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Asthma Ever") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+asthma
+
+
+
+######## Diabetes Mellitus ########
+
+## Filter data to relevant subset 
+subset_diab <- data %>%
+  filter(year==2019 & comorbidity=="diabetes" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+diabetes = ggplot(subset_diab, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Diabetes Mellitus") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+diabetes
+
+
+######## Chronic Kidney Disease ########
+
+## Filter data to relevant subset 
+subset_ckd <- data %>%
+  filter(year==2019 & comorbidity=="ckd" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+ckd = ggplot(subset_ckd, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Chronic Kidney Disease") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+ckd
+
+
+######## Multimorbidity (excluding cancer & obesity) ########
+
+## Filter data to relevant subset 
+subset_multi <- data %>%
+  filter(year==2019 & comorbidity=="multi_prev" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+multi = ggplot(subset_multi, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Multimorbidity") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+multi
+
+
+######## Any condition or severe obesity) ########
+
+## Filter data to relevant subset 
+subset_any <- data %>%
+  filter(year==2019 & comorbidity %in% c('nyonecond_prev' , 'anyonecond_prevbmi' , 'asthma_ever' , 'asthma_specific' , 'bmi_40' , 'cancerever' ,
+                                         'cancerlast5yrs' , 'cancerlastyr' ,  'ckd' , 'diabetes','heart' , 'immuno' , 'immuno_no_si_sp' ,
+                                         'liver' , 'lung'  , 'multi_prev' , 'neuro' , 'organ_tx' , 'si_sp') &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "West Midlands"))
+# West Midlands included as combined 'England' data not extracted in current data
+
+## Generate plot
+any = ggplot(subset_multi, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat)) + 
+  geom_line() +
+  ggtitle("Any Condition") + 
+  theme_bw() +
+  xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+  ylab("Prevalence/100,000") +
+  labs(colour="") +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+# Print graph 
+any
+
+
+
+
+
+## Plot all graphs at once
+multiplot(asthma, can1y, can5y, ckd, diabetes, heart, multi, any, cols = 4)
 
 
 # Create multiplot function 
@@ -129,5 +260,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
   }
 }
+
+
+
 
 

@@ -19,7 +19,20 @@
 #    http://shiny.rstudio.com/
 
 
+# Run saved script in showcase mode
+# runApp("~/Documents/GitHub/summer_thesis/shiny_scripts", display.mode = "showcase")
+
 library(shiny)
+library(tidyr)
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+
+
+
+
+
+
 
 # Define UI ----
 ui <- fluidPage(
