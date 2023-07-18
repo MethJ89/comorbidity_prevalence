@@ -1,78 +1,145 @@
 
-# runExample("01_hello")      # a histogram
-# runExample("02_text")       # tables and data frames
-# runExample("03_reactivity") # a reactive expression
-# runExample("04_mpg")        # global variables
-# runExample("05_sliders")    # slider bars
-# runExample("06_tabsets")    # tabbed panels
-# runExample("07_widgets")    # help text and submit buttons
-# runExample("08_html")       # Shiny app built from HTML
-# runExample("09_upload")     # file upload wizard
-# runExample("10_download")   # file download wizard
-# runExample("11_timer")      # an automated timer
-
-
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-
-# Find out more about building applications with Shiny here:
-#    http://shiny.rstudio.com/
-
-
-# Run saved script in showcase mode
-# runApp("~/Documents/GitHub/summer_thesis/shiny_scripts", display.mode = "showcase")
-
+### Load  packages
 library(shiny)
 library(tidyr)
 library(ggplot2)
 library(tidyverse)
 library(readxl)
+library(shinythemes)
+library(plotly)
 
+### Load data
+Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
+bmi_cat <- read_excel("../Data/bmi_cat.xlsx")
+ethnicity <- read_excel("../Data/ethnicity.xlsx")
+sm_cat <- read_excel("../Data/sm_cat.xlsx")
 
+# Rename file 
+data <- Combined_comorbidity_age_region
 
-
-
-
+# Create comorbidity list 
+# comorbidity_list = as.list(unique(data$comorbidity))
+# comorbidity_list <- list('nyonecond_prev' , 'anyonecond_prevbmi' , 'asthma_ever' , 'asthma_specific' , 'bmi_40' , 'cancerever' , 'cancerlast5yrs' , 'si_sp' ,
+#                          'cancerlastyr' , 'ckd' , 'diabetes', 'heart' , 'immuno' , 'immuno_no_si_sp' , 'liver' , 'lung' , 'multi_prev' , 'neuro' , 'organ_tx') 
 
 # Define UI ----
-ui <- fluidPage(
-    titlePanel("Morbidity Prevalance Graphs"),
+ui <- navbarPage(windowTitle = "Window title",
+                 
+                 sidebarLayout(
+                     ## Side bar panel for parameters
+                     sidebarPanel(
+                         width = 3,
+                         ## Create radio button for year
+                         radioButtons("input_year", label = h3("Select year"),
+                                      choices = list("2014", "2019"), 
+                                      selected = 2014),
+                         
+                         ## Create selectInput for comorbidity
+                         selectInput("input_morbidity", label = h3("Select Comorbditity"), 
+                                     choices = list(
+                                         # Input requires a list where the label is on the left and the 'value' held on selection is on the right
+                                         # This list could be created as an object in the introductory code
+                                         "Liver" = "liver",
+                                         "Heart" = "heart",
+                                         "Lung" = "lung",
+                                         "Diabetes" = "diabetes",
+                                         "Chronic Kidney Disease" = "ckd",
+                                         "Immunosuppression" = "immuno",
+                                         "Chronic neurological disease" = "neuro",
+                                         "Any history of asthma" = "asthma_ever",
+                                         "Current asthma (no COPD)" = "asthma_specific",
+                                         "Severe obesity" = "bmi_40",
+                                         "Any history of cancer" = "cancerever",
+                                         "Cancer (last 5 years)" = "cancerlast5yrs",
+                                         "Cancer (last year)" = "cancerlastyr",
+                                         "Cancer (last 6 months)" = "cancerlast6months",
+                                         "Dysplenia (including sickle cell disease)" = "si_sp",
+                                         "Any 'higher risk' health condition" = "nyonecond_prev",
+                                         "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
+                                         "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
+                                         "Organ transplant recipient" = "organ_tx",
+                                         "Multimorbidity" = "multi_prev"),
+                                     selected = "liver"),
+                         
+                         ## Create selectInput for region
+                         selectInput("input_region" , label = h3("Select Region"),
+                                     choices = list("National" = "national",
+                                                    "Local" = "local"),
+                                     selected = "national")
 
-    sidebarLayout(
-        sidebarPanel(
-            helpText("Create demographic maps with 
-               information from the 2010 US Census."),
-            
-            selectInput("var", 
-                        label = "Choose a year to plot",
-                        choices = list("2014", 
-                                       "2019"),
-                        selected = "2014"),
-            
-             checkboxGroupInput("checkGroup", 
-                                h3("Regions"), 
-                                choices = list("England" = 1, 
-                                               "Scotland" = 2,
-                                               "Wales" = 3,
-                                               "N.Ireland" = 4),
-                                selected = 1),
-            
-            sliderInput("range",
-                        label = "Age Range",
-                        min = 0, max = 100, value = c(0, 100))
-        ),
-        
-        mainPanel(
-            img(src = "LSHTM.jpeg", height = 120, width = 300))
-    )
+                      ),
+                     
+                     ## Create main panel for plots
+                     mainPanel(
+                         h4("Add plot heading here"),
+                         tags$br(),
+                         "Add introductory text here.",
+                         tags$br(),tags$br(),
+                         plotlyOutput("interactive_fig2", height="300px", width="650px")
+                     )
+                     
+                     ## Create hover function for plot
+                     # plotOutput("g1",
+                     #            click = "plot_click",
+                     #            hover = "plot_hover", 
+                     #            brush = "plot_brush"
+                     #            ),
+                     # verbatimTextOutput("Info")
+                     
+                 )
+                 
 )
 
 # Define server logic ----
 server <- function(input, output) {
-
+    data_subset = reactive({ 
+        subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
+    })
+    
+    # regional prevalence plot
+    output$interactive_fig2 <- renderPlotly({
+        ## Read in output from reactive statement above
+        plot_data = data_subset()
+        
+        # Static version for developing plot code
+        # plot_data = subset(data, year==2014 & comorbidity=="lung")
+        
+        g1 = ggplot(plot_data, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
+                                   # Specify hover info here: this can be as simple/complex as you like 
+                                   text=paste0("Hover info:\n",round(comorbidity_prop,1)))) +
+            geom_line() +
+            theme_bw() +
+            xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
+            ylab("Prevalence/100,000") +
+            labs(colour="") +
+            theme(text = element_text(size=12), axis.text.x=element_text(angle = 45, hjust = 1))
+        
+        ggplotly(g1, tooltip = 'text')
+    })
+    
+    # # Output for plot position 
+    # 
+    # output$info <- renderText({
+    #     xy_str <- function(e) {
+    #         if(is.null(e)) return("NULL\n")
+    #         paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
+    #     }
+    #     xy_range_str <- function(e) {
+    #         if(is.null(e)) return("NULL\n")
+    #         paste0("xmin=", round(e$xmin, 1), " xmax=", round(e$xmax, 1), 
+    #                " ymin=", round(e$ymin, 1), " ymax=", round(e$ymax, 1))
+    #     }
+    #     
+    #     paste0(
+    #         "click: ", xy_str(input$plot_click),
+    #         "hover: ", xy_str(input$plot_hover),
+    #         "brush: ", xy_range_str(input$plot_brush)
+    #     )
+    # })
+    # 
+    
 }
 
 # Run the app ----
 shinyApp(ui = ui, server = server)
-
 
