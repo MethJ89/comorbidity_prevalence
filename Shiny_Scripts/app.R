@@ -63,8 +63,8 @@ ui <- navbarPage(windowTitle = "Window title",
                          
                          ## Create selectInput for region
                          selectInput("input_region" , label = h3("Select Region"),
-                                     choices = list("National" = "national",
-                                                    "Local" = "local"),
+                                     choices = list("National" = "National",
+                                                    "Local" = "Local"),
                                      selected = "national")
 
                       ),
@@ -73,18 +73,15 @@ ui <- navbarPage(windowTitle = "Window title",
                      mainPanel(
                          h4("Add plot heading here"),
                          tags$br(),
-                         "Add introductory text here.",
+                         "Graph 1",
                          tags$br(),tags$br(),
-                         plotlyOutput("interactive_fig2", height="300px", width="650px")
+                         plotlyOutput("interactive_fig2", height="300px", width="650px"),
+                         
+                         # ## Add line break and title and details for second graph
+                         # tags$br(),tags$br(),
+                         # h4("Graph 2"),
+                         # plotlyOutput("", height="300px", width="650px")
                      )
-                     
-                     ## Create hover function for plot
-                     # plotOutput("g1",
-                     #            click = "plot_click",
-                     #            hover = "plot_hover", 
-                     #            brush = "plot_brush"
-                     #            ),
-                     # verbatimTextOutput("Info")
                      
                  )
                  
@@ -96,7 +93,13 @@ server <- function(input, output) {
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
     })
     
-    # regional prevalence plot
+    # ## Create subset for second graph
+    # data_subset_pie = reactive({
+    #     subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
+    # })
+
+  
+      # regional prevalence plot
     output$interactive_fig2 <- renderPlotly({
         ## Read in output from reactive statement above
         plot_data = data_subset()
@@ -116,27 +119,6 @@ server <- function(input, output) {
         
         ggplotly(g1, tooltip = 'text')
     })
-    
-    # # Output for plot position 
-    # 
-    # output$info <- renderText({
-    #     xy_str <- function(e) {
-    #         if(is.null(e)) return("NULL\n")
-    #         paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
-    #     }
-    #     xy_range_str <- function(e) {
-    #         if(is.null(e)) return("NULL\n")
-    #         paste0("xmin=", round(e$xmin, 1), " xmax=", round(e$xmax, 1), 
-    #                " ymin=", round(e$ymin, 1), " ymax=", round(e$ymax, 1))
-    #     }
-    #     
-    #     paste0(
-    #         "click: ", xy_str(input$plot_click),
-    #         "hover: ", xy_str(input$plot_hover),
-    #         "brush: ", xy_range_str(input$plot_brush)
-    #     )
-    # })
-    # 
     
 }
 

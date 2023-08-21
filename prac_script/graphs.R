@@ -217,9 +217,6 @@ any = ggplot(subset_multi, aes(x=age_group, y=comorbidity_prop, colour = region_
 any
 
 
-
-
-
 ## Plot all graphs at once
 multiplot(asthma, can1y, can5y, ckd, diabetes, heart, multi, any, cols = 4)
 
@@ -260,6 +257,64 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
   }
 }
+
+
+######## Pie Chart ########
+
+# Create Data
+prac_data <- data.frame(
+  group=LETTERS[1:5],
+  value=c(13,7,9,21,2)
+)
+
+# Compute the position of labels
+prac_data <- prac_data %>% 
+  arrange(desc(group)) %>%
+  mutate(prop = value / sum(prac_data$value) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop )
+
+# Basic piechart
+ggplot(prac_data, aes(x="", y=prop, fill=group)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() + 
+  theme(legend.position="none") +
+  
+  geom_text(aes(y = ypos, label = group), color = "white", size=6) +
+  scale_fill_brewer(palette="Set1")
+
+
+
+
+subset_pie <- data %>%
+  filter(year==2019 & comorbidity=="heart" &
+           region_cat %in% c("Scotland", "Wales", "Northern Ireland", "England"))
+
+
+ggplot(data, aes(x="", y=comorbidity_yes, fill=comorbidity)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y", start=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
