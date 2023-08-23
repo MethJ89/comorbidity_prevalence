@@ -7,6 +7,8 @@ library(tidyverse)
 library(readxl)
 library(shinythemes)
 library(plotly)
+library(shinydashboard)
+
 
 ### Load data
 Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
@@ -77,10 +79,11 @@ ui <- navbarPage(windowTitle = "Window title",
                          tags$br(),tags$br(),
                          plotlyOutput("interactive_fig2", height="300px", width="650px"),
                          
-                         # ## Add line break and title and details for second graph
-                         # tags$br(),tags$br(),
-                         # h4("Graph 2"),
-                         # plotlyOutput("", height="300px", width="650px")
+                         h4("Scatter Plot"),
+                         tags$br(),
+                         "Graph 2",
+                         tags$br(),tags$br(),
+                         plotlyOutput("interactive_fig3", height="300px", width="650px")
                      )
                      
                  )
@@ -93,18 +96,15 @@ server <- function(input, output) {
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
     })
     
-    # ## Create subset for second graph
-    # data_subset_pie = reactive({
-    #     subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
-    # })
+    
+   
+    ###### PLOT 1 ######
 
-  
-      # regional prevalence plot
+      # Regional prevalence plot
     output$interactive_fig2 <- renderPlotly({
         ## Read in output from reactive statement above
         plot_data = data_subset()
-        
-        # Static version for developing plot code
+                # Static version for developing plot code
         # plot_data = subset(data, year==2014 & comorbidity=="lung")
         
         g1 = ggplot(plot_data, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
@@ -119,6 +119,28 @@ server <- function(input, output) {
         
         ggplotly(g1, tooltip = 'text')
     })
+    
+    ###### PLOT 2 ######
+
+      # Scatter plot
+    output$interactive_fig3 <- renderPlotly({
+    
+     g2 = data %>%
+        group_by(region_cat,comorbidity, age_group) %>%
+        mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
+        summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
+                sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
+        mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
+        ggplot(aes(x=age_group,y=prop,size=sum_comorbidity_tot_non_miss,colour=region_cat)) +
+        xlab("Age Group") +
+        ylab("Comorbidity Prevalance") +
+        geom_point()
+    
+     ggplotly(g2, tooltip = 'text')
+     
+     
+    })
+    
     
 }
 

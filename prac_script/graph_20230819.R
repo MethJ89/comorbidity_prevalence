@@ -82,6 +82,7 @@ data %>%
   coord_flip() 
 
 
+
 ####### Create Heat Map ########  
 
 worldmap = map_data('world')
