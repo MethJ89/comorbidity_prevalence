@@ -26,67 +26,144 @@ data <- Combined_comorbidity_age_region
 
 # Define UI ----
 ui <- navbarPage(windowTitle = "Window title",
-               
-                 sidebarLayout(
-                     ## Side bar panel for parameters
-                     sidebarPanel(
-                         width = 3,
-                         ## Create radio button for year
-                         radioButtons("input_year", label = h3("Select year"),
-                                      choices = list("2014", "2019"), 
-                                      selected = 2014),
-                         
-                         ## Create selectInput for comorbidity
-                         selectInput("input_morbidity", label = h3("Select Comorbditity"), 
-                                     choices = list(
-                                         # Input requires a list where the label is on the left and the 'value' held on selection is on the right
-                                         # This list could be created as an object in the introductory code
-                                         "Liver" = "liver",
-                                         "Heart" = "heart",
-                                         "Lung" = "lung",
-                                         "Diabetes" = "diabetes",
-                                         "Chronic Kidney Disease" = "ckd",
-                                         "Immunosuppression" = "immuno",
-                                         "Chronic neurological disease" = "neuro",
-                                         "Any history of asthma" = "asthma_ever",
-                                         "Current asthma (no COPD)" = "asthma_specific",
-                                         "Severe obesity" = "bmi_40",
-                                         "Any history of cancer" = "cancerever",
-                                         "Cancer (last 5 years)" = "cancerlast5yrs",
-                                         "Cancer (last year)" = "cancerlastyr",
-                                         "Cancer (last 6 months)" = "cancerlast6months",
-                                         "Dysplenia (including sickle cell disease)" = "si_sp",
-                                         "Any 'higher risk' health condition" = "nyonecond_prev",
-                                         "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
-                                         "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
-                                         "Organ transplant recipient" = "organ_tx",
-                                         "Multimorbidity" = "multi_prev"),
-                                     selected = "liver"),
-                         
-                         ## Create selectInput for region
-                         selectInput("input_region" , label = h3("Select Region"),
-                                     choices = list("National" = "National",
-                                                    "Local" = "Local"),
-                                     selected = "national")
+                 
+                 title = "Insert title",
+                 
+                 #### MAIN PAGE ####
+                 
+                 ## Create main page to briefly describe dashboard and its content 
+                 tabPanel("Main Page",
+                          h2("Main Page Content"),
+                          p("Welcome to Main Page"),
+                          icon = icon("dashbaord"),
+                 ),
+                 
+                 #### FIRST TAB ####
+                 
+                 ## First tab with first graph 
+                 tabPanel(title = "Graph 1",
+                          icon = icon("chart-line"),
+                          
+                          sidebarLayout(
+                            
+                            ## Side bar panel for parameters
+                            sidebarPanel(
+                              width = 3,
+                              ## Create radio button for year
+                              radioButtons("input_year", label = h3("Select year"),
+                                           choices = list("2014", "2019"), 
+                                           selected = 2014),
+                              
+                              ## Create selectInput for comorbidity
+                              selectInput("input_morbidity", label = h3("Select Comorbditity"), 
+                                          choices = list(
+                                            # Input requires a list where the label is on the left and the 'value' held on selection is on the right
+                                            # This list could be created as an object in the introductory code
+                                            "Liver" = "liver",
+                                            "Heart" = "heart",
+                                            "Lung" = "lung",
+                                            "Diabetes" = "diabetes",
+                                            "Chronic Kidney Disease" = "ckd",
+                                            "Immunosuppression" = "immuno",
+                                            "Chronic neurological disease" = "neuro",
+                                            "Any history of asthma" = "asthma_ever",
+                                            "Current asthma (no COPD)" = "asthma_specific",
+                                            "Severe obesity" = "bmi_40",
+                                            "Any history of cancer" = "cancerever",
+                                            "Cancer (last 5 years)" = "cancerlast5yrs",
+                                            "Cancer (last year)" = "cancerlastyr",
+                                            "Cancer (last 6 months)" = "cancerlast6months",
+                                            "Dysplenia (including sickle cell disease)" = "si_sp",
+                                            "Any 'higher risk' health condition" = "nyonecond_prev",
+                                            "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
+                                            "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
+                                            "Organ transplant recipient" = "organ_tx",
+                                            "Multimorbidity" = "multi_prev"),
+                                          selected = "liver"),
+                              
+                              ## Create selectInput for region
+                              selectInput("input_region" , label = h3("Select Region"),
+                                          choices = list("National" = "National",
+                                                         "Local" = "Local"),
+                                          selected = "national")
+                              
+                            ),
+                            
+                            ## Create main panel for plots
+                            mainPanel(
+                              h4("Add plot heading here"),
+                              tags$br(),
+                              "Graph 1",
+                              tags$br(),tags$br(),
+                              plotlyOutput("interactive_fig2", height="300px", width="650px"),
+                              
+                            )
+                            
+                          )  
+                 ),
+                 
+                 #### SECOND TAB ####
+                 
+                 ## Second tab with second graph 
+                 tabPanel("Graph 2",
+                          icon = icon("chart-line"),
+                          
+                          sidebarLayout(
+                            
+                            ## Side bar panel for parameters
+                            sidebarPanel(
+                              width = 3,
+                              ## Create radio button for year
+                              radioButtons("input_year", label = h3("Select year"),
+                                           choices = list("2014", "2019"), 
+                                           selected = 2014),
+                              
+                              ## Create selectInput for region
+                              selectInput("input_region" , label = h3("Select Region"),
+                                          choices = list("National" = "National",
+                                                         "Local" = "Local"),
+                                          selected = "national")
+                            ),
+                            
+                            ## Create main panel for plots
+                            mainPanel(
+                              h4("Scatter Plot"),
+                              tags$br(),
+                              "Graph 2",
+                              tags$br(),tags$br(),
+                              plotlyOutput("interactive_fig3", height="300px", width="650px")   ,
+                              
+                            )
+                            
+                          )  
+                 ),
 
-                      ),
-                     
-                     ## Create main panel for plots
-                     mainPanel(
-                         h4("Add plot heading here"),
-                         tags$br(),
-                         "Graph 1",
-                         tags$br(),tags$br(),
-                         plotlyOutput("interactive_fig2", height="300px", width="650px"),
-                         
-                         h4("Scatter Plot"),
-                         tags$br(),
-                         "Graph 2",
-                         tags$br(),tags$br(),
-                         plotlyOutput("interactive_fig3", height="300px", width="650px")
-                     )
-                     
-                 )
+                 
+                 #### THIRD TAB ####
+                 
+                 tabPanel("Graph 3",
+                          icon = icon("chart-line"),
+                          
+                          sidebarLayout(
+                            
+                            ## Side bar panel for parameters
+                            sidebarPanel(
+                              width = 3,
+
+                            ),
+                            
+                            ## Create main panel for plots
+                            mainPanel(
+                              h4("Stacked Bar Graph"),
+                              tags$br(),
+                              "Graph 3",
+                              tags$br(),tags$br(),
+                              plotlyOutput("interactive_fig4", height="300px", width="650px")   ,
+                              
+                            )
+                            
+                          )  
+                 ),
                  
 )
 
@@ -138,9 +215,28 @@ server <- function(input, output) {
     
      ggplotly(g2, tooltip = 'text')
      
-     
     })
     
+    
+    ###### PLOT 3 ######
+  
+    output$interactive_fig4 <- renderPlotly({ 
+      
+      g3 = data %>%
+        group_by(region_cat,comorbidity, age_group) %>%
+        mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
+        summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
+                sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
+        mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
+        ggplot(aes(fill=comorbidity, y=prop, x=region_cat)) + 
+        geom_bar(position="stack", stat="identity") +
+        coord_flip() 
+      
+      ggplotly(g3, tooltip = 'text')
+      
+    })
+    
+     
     
 }
 
