@@ -26,7 +26,7 @@ data <- Combined_comorbidity_age_region
 
 # Define UI ----
 ui <- navbarPage(windowTitle = "Window title",
-                 
+               
                  sidebarLayout(
                      ## Side bar panel for parameters
                      sidebarPanel(
@@ -92,12 +92,12 @@ ui <- navbarPage(windowTitle = "Window title",
 
 # Define server logic ----
 server <- function(input, output) {
-    data_subset = reactive({ 
+  
+      data_subset = reactive({ 
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
     })
     
     
-   
     ###### PLOT 1 ######
 
       # Regional prevalence plot
