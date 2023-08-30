@@ -7,7 +7,6 @@ library(tidyverse)
 library(readxl)
 library(shinythemes)
 library(plotly)
-library(shinydashboard)
 
 
 ### Load data
@@ -27,22 +26,45 @@ data <- Combined_comorbidity_age_region
 # Define UI ----
 ui <- navbarPage(windowTitle = "Window title",
                  
-                 title = "Insert title",
+                 title = "Dashboard",
                  
                  #### MAIN PAGE ####
                  
                  ## Create main page to briefly describe dashboard and its content 
-                 tabPanel("Main Page",
+                 tabPanel("Home",
                           h2("Main Page Content"),
                           p("Welcome to Main Page"),
                           icon = icon("dashbaord"),
+                          img(src = "https://via.placeholder.com/150", 
+                              style = "float: right; margin-top: 10px; margin-right: 5px;"),
+                    
+                          fluidPage(
+                            h2("Tab 1 Content"),
+                            
+                            
+                            
+                            # fluidRow(
+                            #   column(8,
+                            #          p("This is the content for Tab 1.")
+                            #   ),
+                            #   column(4,
+                            #          img(src = "https://via.placeholder.com/150", 
+                            #              style = "float: right;")
+                            #   )
+                            # )
+                          ),
+                          
+                          style = "background-color:#e1f5fe;"
                  ),
+                 
+                 
                  
                  #### FIRST TAB ####
                  
                  ## First tab with first graph 
                  tabPanel(title = "Graph 1",
                           icon = icon("chart-line"),
+                          
                           
                           sidebarLayout(
                             
@@ -88,18 +110,23 @@ ui <- navbarPage(windowTitle = "Window title",
                                           selected = "national")
                               
                             ),
-                            
+                         
                             ## Create main panel for plots
                             mainPanel(
                               h4("Add plot heading here"),
                               tags$br(),
                               "Graph 1",
                               tags$br(),tags$br(),
-                              plotlyOutput("interactive_fig2", height="300px", width="650px"),
-                              
+                                 div(style = "border: 2px solid #333;",
+                                   plotlyOutput("interactive_fig2", height="300px", width="650px")),
+
                             )
                             
-                          )  
+                          ),  
+                          
+                          ## Add some background colour to tab
+                          style = "background-color: #e8f5e9;"
+                          
                  ),
                  
                  #### SECOND TAB ####
@@ -131,11 +158,15 @@ ui <- navbarPage(windowTitle = "Window title",
                               tags$br(),
                               "Graph 2",
                               tags$br(),tags$br(),
-                              plotlyOutput("interactive_fig3", height="300px", width="650px")   ,
+                              div(style = "border: 2px solid #333;",
+                              plotlyOutput("interactive_fig3", height="300px", width="650px")),
                               
                             )
                             
-                          )  
+                          ),  
+                          
+                          ## Add some background colour to tab
+                          style = "background-color: #e8f5e9;"
                  ),
 
                  
@@ -158,11 +189,15 @@ ui <- navbarPage(windowTitle = "Window title",
                               tags$br(),
                               "Graph 3",
                               tags$br(),tags$br(),
-                              plotlyOutput("interactive_fig4", height="300px", width="650px")   ,
+                              div(style = "border: 2px solid #333;",
+                              plotlyOutput("interactive_fig4", height="300px", width="650px")),
                               
                             )
                             
-                          )  
+                          ),
+                          
+                          ## Add some background colour to tab
+                          style = "background-color: #e8f5e9;"
                  ),
                  
 )
