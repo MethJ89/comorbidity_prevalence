@@ -204,22 +204,35 @@ ui <- navbarPage(windowTitle = "Window title",
 
 # Define server logic ----
 server <- function(input, output) {
-  
-      data_subset = reactive({ 
+
+    ## Create data subset for plot 1 ##
+      data_subset_one = reactive({ 
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
     })
     
+      ## Create data subset for plot 2 ##
+       
+      # data_subset_two = reactive({
+      #   subset(data %>% group_by(region_cat, comorbidity, age_group) %>%
+      #            mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
+      #            summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
+      #                      sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
+      #            mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) )
+      # })
+      #  
+      # 
+     
     
     ###### PLOT 1 ######
 
       # Regional prevalence plot
     output$interactive_fig2 <- renderPlotly({
         ## Read in output from reactive statement above
-        plot_data = data_subset()
+        plot_one = data_subset_one()
                 # Static version for developing plot code
-        # plot_data = subset(data, year==2014 & comorbidity=="lung")
         
-        g1 = ggplot(plot_data, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
+        
+        g1 = ggplot(plot_one, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
                                    # Specify hover info here: this can be as simple/complex as you like 
                                    text=paste0("Hover info:\n",round(comorbidity_prop,1)))) +
             geom_line() +
@@ -238,12 +251,15 @@ server <- function(input, output) {
     output$interactive_fig3 <- renderPlotly({
     
      g2 = data %>%
-        group_by(region_cat,comorbidity, age_group) %>%
+        group_by(region_cat, comorbidity, age_group) %>%
         mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
         summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
                 sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
         mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
-        ggplot(aes(x=age_group,y=prop,size=sum_comorbidity_tot_non_miss,colour=region_cat)) +
+       
+        ggplot(aes(x=age_group, y=prop, size=sum_comorbidity_tot_non_miss, colour=region_cat,
+                   text=paste0("Hover info:\n",round(prop,1)))) +
+       
         xlab("Age Group") +
         ylab("Comorbidity Prevalance") +
         geom_point()
@@ -263,7 +279,10 @@ server <- function(input, output) {
         summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
                 sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
         mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
-        ggplot(aes(fill=comorbidity, y=prop, x=region_cat)) + 
+       
+         ggplot(aes(fill=comorbidity, y=prop, x=region_cat,
+                    text=paste0("Hover info:\n",round(prop,1)))) + 
+        
         geom_bar(position="stack", stat="identity") +
         coord_flip() 
       
