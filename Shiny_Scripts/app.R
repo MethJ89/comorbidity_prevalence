@@ -26,22 +26,30 @@ data <- Combined_comorbidity_age_region
 # Define UI ----
 ui <- navbarPage(windowTitle = "Window title",
                  
-                 title = "Dashboard",
+                 title = "LSHTM",
                  
                  #### MAIN PAGE ####
                  
                  ## Create main page to briefly describe dashboard and its content 
                  tabPanel("Home",
-                          h2("Main Page Content"),
-                          p("Welcome to Main Page"),
-                          icon = icon("dashbaord"),
-                          img(src = "https://via.placeholder.com/150", 
-                              style = "float: right; margin-top: 10px; margin-right: 5px;"),
+                          icon = icon("home"),
+                          # h2("Main Page Content"),
+                          # p("Welcome to Main Page"),
+                          # icon = icon("dashbaord"),
+                          # img(src = "https://via.placeholder.com/150", 
+                          #     style = "float: right; margin-top: 10px; margin-right: 5px;"),
                     
                           fluidPage(
-                            h2("Tab 1 Content"),
-                            
-                            
+                            h2("R Shiny Dashboard"),
+                            p("This dashbaord contains "),
+                           
+                            div(style = "float: right; margin-top: 5px; margin-right: 5px;",
+                                img(src = "https://via.placeholder.com/150", alt = "Logo")
+                            )
+                              
+                              # img(src = "https://via.placeholder.com/150", 
+                              #   style = "float: right; margin-top: 5px; margin-right: 5px;"),
+                              # 
                             
                             # fluidRow(
                             #   column(8,
@@ -113,12 +121,15 @@ ui <- navbarPage(windowTitle = "Window title",
                          
                             ## Create main panel for plots
                             mainPanel(
-                              h4("Add plot heading here"),
+                              h4("Morbidity Prevalance by Age-Group"),
                               tags$br(),
-                              "Graph 1",
+                              "Age distribution of at-risk population and underlying health conditions, N = 2,706,053",
+                              tags$br(),
+                              "Filter by Year, Comorbidity and Region Type",
                               tags$br(),tags$br(),
                                  div(style = "border: 2px solid #333;",
-                                   plotlyOutput("interactive_fig2", height="300px", width="650px")),
+                                   plotlyOutput("interactive_fig1", height="300px", width="650px")),
+                              p("Further information can be found in here: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7948667/table/Tab2/")
 
                             )
                             
@@ -128,58 +139,27 @@ ui <- navbarPage(windowTitle = "Window title",
                           style = "background-color: #e8f5e9;"
                           
                  ),
+                 
                  
                  #### SECOND TAB ####
                  
-                 ## Second tab with second graph 
                  tabPanel("Graph 2",
-                          icon = icon("chart-line"),
+                          icon = icon("bar-chart"),
                           
                           sidebarLayout(
                             
                             ## Side bar panel for parameters
                             sidebarPanel(
                               width = 3,
-                              ## Create radio button for year
-                              radioButtons("input_year", label = h3("Select year"),
+                              
+                              radioButtons("input_year2", label = h3("Select year"),
                                            choices = list("2014", "2019"), 
                                            selected = 2014),
                               
-                              ## Create selectInput for region
                               selectInput("input_region" , label = h3("Select Region"),
                                           choices = list("National" = "National",
                                                          "Local" = "Local"),
-                                          selected = "national")
-                            ),
-                            
-                            ## Create main panel for plots
-                            mainPanel(
-                              h4("Scatter Plot"),
-                              tags$br(),
-                              "Graph 2",
-                              tags$br(),tags$br(),
-                              div(style = "border: 2px solid #333;",
-                              plotlyOutput("interactive_fig3", height="300px", width="650px")),
-                              
-                            )
-                            
-                          ),  
-                          
-                          ## Add some background colour to tab
-                          style = "background-color: #e8f5e9;"
-                 ),
-
-                 
-                 #### THIRD TAB ####
-                 
-                 tabPanel("Graph 3",
-                          icon = icon("chart-line"),
-                          
-                          sidebarLayout(
-                            
-                            ## Side bar panel for parameters
-                            sidebarPanel(
-                              width = 3,
+                                          selected = "national"),
 
                             ),
                             
@@ -187,15 +167,27 @@ ui <- navbarPage(windowTitle = "Window title",
                             mainPanel(
                               h4("Stacked Bar Graph"),
                               tags$br(),
-                              "Graph 3",
+                              "Graph 2",
                               tags$br(),tags$br(),
                               div(style = "border: 2px solid #333;",
-                              plotlyOutput("interactive_fig4", height="300px", width="650px")),
+                              plotlyOutput("interactive_fig2", height="300px", width="650px")),
                               
                             )
                             
                           ),
                           
+                          ## Add some background colour to tab
+                          style = "background-color: #e8f5e9;"
+                 ),
+                 
+                 
+                 #### THIRD TAB ####
+                 
+                 ## Third tab with third graph 
+                 tabPanel("Table",
+                          icon = icon("table"),
+                          
+                        
                           ## Add some background colour to tab
                           style = "background-color: #e8f5e9;"
                  ),
@@ -211,22 +203,15 @@ server <- function(input, output) {
     })
     
       ## Create data subset for plot 2 ##
-       
-      # data_subset_two = reactive({
-      #   subset(data %>% group_by(region_cat, comorbidity, age_group) %>%
-      #            mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
-      #            summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
-      #                      sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
-      #            mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) )
-      # })
-      #  
-      # 
-     
+      data_subset_two = reactive({
+        subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
+      })
+
     
     ###### PLOT 1 ######
 
       # Regional prevalence plot
-    output$interactive_fig2 <- renderPlotly({
+    output$interactive_fig1 <- renderPlotly({
         ## Read in output from reactive statement above
         plot_one = data_subset_one()
                 # Static version for developing plot code
@@ -234,7 +219,9 @@ server <- function(input, output) {
         
         g1 = ggplot(plot_one, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
                                    # Specify hover info here: this can be as simple/complex as you like 
-                                   text=paste0("Hover info:\n",round(comorbidity_prop,1)))) +
+                                   text=paste0("Prevalance ", round(comorbidity_prop,1), "\n",
+                                               "Region: ", region_cat, "\n",
+                                               "Age Group: ", age_group))) +
             geom_line() +
             theme_bw() +
             xlab("Age (years) : 2-9 yrs; 5 year age bands; 90-99 yrs") +
@@ -245,52 +232,46 @@ server <- function(input, output) {
         ggplotly(g1, tooltip = 'text')
     })
     
+    
     ###### PLOT 2 ######
+  
+      output$interactive_fig2 <- renderPlotly({
 
-      # Scatter plot
-    output$interactive_fig3 <- renderPlotly({
-    
-     g2 = data %>%
-        group_by(region_cat, comorbidity, age_group) %>%
-        mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
-        summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
-                sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
-        mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
-       
-        ggplot(aes(x=age_group, y=prop, size=sum_comorbidity_tot_non_miss, colour=region_cat,
-                   text=paste0("Hover info:\n",round(prop,1)))) +
-       
-        xlab("Age Group") +
-        ylab("Comorbidity Prevalance") +
-        geom_point()
-    
-     ggplotly(g2, tooltip = 'text')
-     
-    })
-    
+         plot_two = data_subset_two()
+
+        g2 = ggplot(plot_two, aes(y=comorbidity_prop, x=region_cat, fill=comorbidity,
+                                  text=paste0("Prevalance ", round(comorbidity_prop,1), "\n",
+                                              "Region: ", region_cat))) +
+          geom_bar(position="stack", stat="identity") +
+          coord_flip() +
+          xlab("Region") +
+          ylab("Prevalence/100,000") 
+         
+        
+      })
+      
+    # output$interactive_fig2 <- renderPlotly({
+    # 
+    #   g2 = data %>%
+    #     group_by(region_cat,comorbidity, age_group) %>%
+    #     mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
+    #     summarise(sum_comorbidity_yes = sum(comorbidity_yes),
+    #             sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
+    #     mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
+    # 
+    #      ggplot(aes(fill=comorbidity, y=prop, x=region_cat,
+    #                 text=paste0("Hover info:\n",round(prop,1)))) +
+    # 
+    #     geom_bar(position="stack", stat="identity") +
+    #     coord_flip()
+    # 
+    #   ggplotly(g2, tooltip = 'text')
+    # 
+    # })
     
     ###### PLOT 3 ######
-  
-    output$interactive_fig4 <- renderPlotly({ 
-      
-      g3 = data %>%
-        group_by(region_cat,comorbidity, age_group) %>%
-        mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
-        summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
-                sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
-        mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
-       
-         ggplot(aes(fill=comorbidity, y=prop, x=region_cat,
-                    text=paste0("Hover info:\n",round(prop,1)))) + 
-        
-        geom_bar(position="stack", stat="identity") +
-        coord_flip() 
-      
-      ggplotly(g3, tooltip = 'text')
-      
-    })
     
-     
+   
     
 }
 
