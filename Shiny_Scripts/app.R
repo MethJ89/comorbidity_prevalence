@@ -25,10 +25,10 @@ data <- Combined_comorbidity_age_region
 
 # Define UI ----
 ui <- navbarPage(windowTitle = "Window title",
-                 
+                 theme = shinytheme("lumen"),
                  title = "LSHTM",
                  
-                 #### MAIN PAGE ####
+                 #### HOME PAGE ####
                  
                  ## Create main page to briefly describe dashboard and its content 
                  tabPanel("Home",
@@ -39,27 +39,25 @@ ui <- navbarPage(windowTitle = "Window title",
                           # img(src = "https://via.placeholder.com/150", 
                           #     style = "float: right; margin-top: 10px; margin-right: 5px;"),
                     
-                          fluidPage(
-                            h2("R Shiny Dashboard"),
-                            p("This dashbaord contains "),
-                           
-                            div(style = "float: right; margin-top: 5px; margin-right: 5px;",
-                                img(src = "https://via.placeholder.com/150", alt = "Logo")
-                            )
-                              
-                              # img(src = "https://via.placeholder.com/150", 
-                              #   style = "float: right; margin-top: 5px; margin-right: 5px;"),
-                              # 
+                          fluidRow(
+                            column(8,
+                                   wellPanel(style = "background-color: #fff; border-color: #2c3e50; height: 500px;",
+                                             fluidRow(style = "margin-top: 5px;",
+                                                      h2("R Shiny Dashboard"),
+                                                      p("Dashboard based on the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records ")
+                                   ))),
                             
-                            # fluidRow(
-                            #   column(8,
-                            #          p("This is the content for Tab 1.")
-                            #   ),
-                            #   column(4,
-                            #          img(src = "https://via.placeholder.com/150", 
-                            #              style = "float: right;")
-                            #   )
-                            # )
+                            
+                            column(4,
+                                  wellPanel(style = "background-color: #fff; border-color: #2c3e50; height: 200px;",
+                                            fluidRow(style = "margin-top: 1px;",
+                                                     div(style = "float: right; margin-top: 5px; margin-right: 5px;",
+                                                         img(src = "https://www.lshtm.ac.uk/sites/default/files/LSHTM-logo-bw.jpg", 
+                                                             height = "150", width = "250",
+                                                             alt = "Logo")
+                                            ))),
+                            
+                            )
                           ),
                           
                           style = "background-color:#e1f5fe;"
@@ -121,7 +119,7 @@ ui <- navbarPage(windowTitle = "Window title",
                          
                             ## Create main panel for plots
                             mainPanel(
-                              h4("Morbidity Prevalance by Age-Group"),
+                              h4("Line Graph for Comorbidity Prevalance by Age-Group"),
                               tags$br(),
                               "Age distribution of at-risk population and underlying health conditions, N = 2,706,053",
                               tags$br(),
