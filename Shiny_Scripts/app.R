@@ -24,7 +24,10 @@ data <- Combined_comorbidity_age_region
 #                          'cancerlastyr' , 'ckd' , 'diabetes', 'heart' , 'immuno' , 'immuno_no_si_sp' , 'liver' , 'lung' , 'multi_prev' , 'neuro' , 'organ_tx') 
 
 # Define UI ----
-ui <- navbarPage(windowTitle = "Window title",
+ui <- fluidPage(
+
+  
+  navbarPage(windowTitle = "Window title",
                  theme = shinytheme("lumen"),
                  title = "LSHTM",
                  
@@ -77,16 +80,20 @@ ui <- navbarPage(windowTitle = "Window title",
                             ## Side bar panel for parameters
                             sidebarPanel(
                               width = 3,
-                              ## Create radio button for year
+                              p("Apply Filters"),
+                              # Create radio button for year
                               radioButtons("input_year", label = h3("Select year"),
-                                           choices = list("2014", "2019"), 
+                                           choices = list("2014", "2019"),
                                            selected = 2014),
+                              
+                              # checkboxGroupInput("input_year",
+                              #                    label = "Select Year(s)",
+                              #                    choices = list("2014", "2019"),
+                              #                    select = "2014"),
                               
                               ## Create selectInput for comorbidity
                               selectInput("input_morbidity", label = h3("Select Comorbditity"), 
                                           choices = list(
-                                            # Input requires a list where the label is on the left and the 'value' held on selection is on the right
-                                            # This list could be created as an object in the introductory code
                                             "Liver" = "liver",
                                             "Heart" = "heart",
                                             "Lung" = "lung",
@@ -154,11 +161,35 @@ ui <- navbarPage(windowTitle = "Window title",
                                            choices = list("2014", "2019"), 
                                            selected = 2014),
                               
-                              selectInput("input_region" , label = h3("Select Region"),
+                              selectInput("input_region2" , label = h3("Select Region"),
                                           choices = list("National" = "National",
                                                          "Local" = "Local"),
                                           selected = "national"),
-
+                              
+                              selectInput("input_morbidity2", label = h3("Select Comorbditity"), 
+                                          choices = list(
+                                            "Liver" = "liver",
+                                            "Heart" = "heart",
+                                            "Lung" = "lung",
+                                            "Diabetes" = "diabetes",
+                                            "Chronic Kidney Disease" = "ckd",
+                                            "Immunosuppression" = "immuno",
+                                            "Chronic neurological disease" = "neuro",
+                                            "Any history of asthma" = "asthma_ever",
+                                            "Current asthma (no COPD)" = "asthma_specific",
+                                            "Severe obesity" = "bmi_40",
+                                            "Any history of cancer" = "cancerever",
+                                            "Cancer (last 5 years)" = "cancerlast5yrs",
+                                            "Cancer (last year)" = "cancerlastyr",
+                                            "Cancer (last 6 months)" = "cancerlast6months",
+                                            "Dysplenia (including sickle cell disease)" = "si_sp",
+                                            "Any 'higher risk' health condition" = "nyonecond_prev",
+                                            "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
+                                            "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
+                                            "Organ transplant recipient" = "organ_tx",
+                                            "Multimorbidity" = "multi_prev"),
+                                          selected = "liver"),
+                              
                             ),
                             
                             ## Create main panel for plots
@@ -190,7 +221,32 @@ ui <- navbarPage(windowTitle = "Window title",
                           style = "background-color: #e8f5e9;"
                  ),
                  
-)
+                #### HELP TAB ####
+             navbarMenu("Help",
+                        icon = icon("search"),
+                        # First drop down in Help tab (information about graphs, morbidities, prevalance etc.)
+                        tabPanel("Key", fluid = TRUE,
+                                 fluidRow(
+                                   column(6,
+                                          h4(p("Dashboard Info")),
+                                          h5(p("Test"),
+                                             p("test"),
+                                          ))
+                                 )),
+                        # Second drop down in Help tab (any further information)
+                        tabPanel("About", fluid = TRUE,
+                                 fluidRow(
+                                   column(6,
+                                          h4(p("About the Project")),
+                                          h5(p("Test")),
+                                          )
+                                 ))
+                        
+             ),
+             
+             
+             
+))
 
 # Define server logic ----
 server <- function(input, output) {
@@ -202,7 +258,7 @@ server <- function(input, output) {
     
       ## Create data subset for plot 2 ##
       data_subset_two = reactive({
-        subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
+        subset(data, year==input$input_year2 & comorbidity==input$input_morbidity2 & region==input$input_region2)
       })
 
     
@@ -237,15 +293,17 @@ server <- function(input, output) {
 
          plot_two = data_subset_two()
 
-        g2 = ggplot(plot_two, aes(y=comorbidity_prop, x=region_cat, fill=comorbidity,
+        g2 = ggplot(plot_two, aes(y=comorbidity_prop, x=region_cat, fill=region_cat,
                                   text=paste0("Prevalance ", round(comorbidity_prop,1), "\n",
                                               "Region: ", region_cat))) +
           geom_bar(position="stack", stat="identity") +
           coord_flip() +
           xlab("Region") +
-          ylab("Prevalence/100,000") 
-         
+          ylab("Prevalence/100,000") +
+          labs(colour="") 
         
+        ggplotly(g2, tooltip = 'text')
+         
       })
       
     # output$interactive_fig2 <- renderPlotly({
