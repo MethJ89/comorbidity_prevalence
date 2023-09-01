@@ -156,6 +156,7 @@ ui <- navbarPage(windowTitle = "Window title",
                                            choices = list("2014", "2019"), 
                                            selected = 2014),
                               
+                              ## EP: line below needs to be updated to avoid duplication of 'input_region' input
                               selectInput("input_region" , label = h3("Select Region"),
                                           choices = list("National" = "National",
                                                          "Local" = "Local"),
@@ -203,6 +204,8 @@ server <- function(input, output) {
     })
     
       ## Create data subset for plot 2 ##
+      ## EP: reactive component below needs to be updated to look at the relevant inputs - input_year2 & input_region2
+      ## Do you want to add an input_morbidity2 dropdown?
       data_subset_two = reactive({
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
       })
@@ -238,7 +241,7 @@ server <- function(input, output) {
       output$interactive_fig2 <- renderPlotly({
 
          plot_two = data_subset_two()
-
+        
         g2 = ggplot(plot_two, aes(y=comorbidity_prop, x=region_cat, fill=comorbidity,
                                   text=paste0("Prevalance ", round(comorbidity_prop,1), "\n",
                                               "Region: ", region_cat))) +
@@ -246,6 +249,8 @@ server <- function(input, output) {
           coord_flip() +
           xlab("Region") +
           ylab("Prevalence/100,000") 
+        
+        ## EP comment: Need to render object g2 using 'ggplotly' (as above) to enable interaction
          
         
       })
