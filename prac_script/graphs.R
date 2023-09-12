@@ -297,8 +297,12 @@ ggplot(data, aes(x="", y=comorbidity_yes, fill=comorbidity)) +
 
 
 
-
-
+ggplot(data, aes(x = age_group, y = comorbidity_prop, fill = region_cat)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Comorbidity Prevalence by Age Group and Region",
+       x = "Age Group",
+       y = "Comorbidity Prevalence") +
+  theme_minimal()
 
 
 

@@ -12,12 +12,14 @@ install.packages("readxl")
 install.packages("scales")
 install.packages("maps")
 
+library(ggplot2)
 library(devtools)
 library(ggradar)
 library(tidyverse)
 library(readxl)
 library(scales)
 library(maps)
+library(dplyr)
 
 ################  IMPORT DATA ################  
 
@@ -96,6 +98,69 @@ ggplot() +
               ylim = c(50, 59))
 
 
+g = data %>% ggplot(aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat)) + 
+  geom_bar(stat="identity" , position = position_dodge()) 
+g
+
+
+
+gg = data %>%
+  filter(region == "National") %>%
+  group_by(region_cat,comorbidity) %>%
+  mutate(comorbidity_yes=comorbidity_prop*comorbidity_tot_non_miss) %>%
+  summarise(sum_comorbidity_yes = sum(comorbidity_yes), 
+            sum_comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss)) %>%
+  mutate(prop = sum_comorbidity_yes/sum_comorbidity_tot_non_miss) %>%
+  ggplot(aes(y=prop, x=reorder(comorbidity, prop), fill = region_cat)) + 
+  geom_bar(stat="identity" , position = position_dodge()) 
+gg
+
+
+
+
+ggg = data %>%
+    group_by(region_cat,comorbidity) %>%
+  ggplot(aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat)) + 
+  geom_bar(stat="identity" , position = position_dodge()) 
+ggg
+
+
+
+
+g2 = ggplot(data, aes(x = region_cat, y = comorbidity_prop, fill = comorbidity)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Comorbidity Prevalence by Region",
+       x = "Region",
+       y = "Comorbidity Prevalence") +
+  theme_minimal()
+g2
+
+
+comorbidity_data <- data %>%
+  filter(comorbidity == "Liver") %>%
+  select(region_cat, comorbidity_prop)
+
+heatmap_data <- pivot_wider(comorbidity_data, id_cols = region_cat, names_from = region_cat, values_from = comorbidity_prop)
+
+ggplot(heatmap_data, aes(x = region_cat, y = region_cat, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "blue") +  # Adjust color scale
+  labs(title = "Comorbidity Prevalence Heatmap by Region",
+       x = "Region",
+       y = "Region") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
+
+
+
+ggplot(data, aes(x = region_cat, y = comorbidity, fill = comorbidity_prop)) +
+  geom_tile() +
+  labs(title = "Comorbidity Prevalence by Region",
+       x = "Region",
+       y = "Comorbidity") +
+  scale_fill_gradient(low = "white", high = "blue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 
