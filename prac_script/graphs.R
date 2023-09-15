@@ -22,7 +22,7 @@ data <- Combined_comorbidity_age_region
 # runApp("~/Documents/GitHub/summer_thesis/shiny_scripts", display.mode = "showcase")
 
 # Summarise 'data' 
-summary(data)
+summary(data2)
 
 # Change comorbidity_yes column from character to numeric 
 # Some values (<5) have been converted to NA
@@ -306,19 +306,39 @@ ggplot(data, aes(x = age_group, y = comorbidity_prop, fill = region_cat)) +
 
 
 
+g2 = ggplot(data, aes(x = region_cat, y = comorbidity_prop, fill = comorbidity)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Comorbidity Prevalence by Region",
+       x = "Region",
+       y = "Comorbidity Prevalence") +
+  theme_minimal()
+
+
+g2
 
 
 
+g3 = ggplot(data, aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat)) +
+  geom_bar(stat="identity" , position = position_dodge) +
+  xlab("Comorbidity") +
+  ylab("Prevalance")
 
 
+data2_agg <- data2 %>%
+  group_by (region_cat, region, comorbidity, year) %>%
+  summarise (status = mean(status),
+             comorbidity_yes = sum(comorbidity_yes),
+             comorbidity_no = sum(comorbidity_no),
+             comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss),
+             comorbidity_prop = sum(comorbidity_prop),
+             comorbidity_lb = sum(comorbidity_lb),
+             comorbidity_ub = sum(comorbidity_ub))
 
 
+data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
+data2$comorbidity_no <- as.numeric(data$comorbidity_no)
 
-
-
-
-
-
-
-
+data$age_group <- as.factor(data$age_group)
+data$region_cat <- as.factor(data$region_cat)
+data$comorbidity <- as.factor(data$comorbidity)
 

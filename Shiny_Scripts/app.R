@@ -11,12 +11,37 @@ library(plotly)
 
 ### Load data
 Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
+# Combined_comorbidity_region <- read_excel("../Data/Combined_comorbidity_region.xlsx")
 bmi_cat <- read_excel("../Data/bmi_cat.xlsx")
 ethnicity <- read_excel("../Data/ethnicity.xlsx")
 sm_cat <- read_excel("../Data/sm_cat.xlsx")
 
 # Rename file 
 data <- Combined_comorbidity_age_region
+
+# Create copy of 'data' dataframe without age_group column
+data2 <- data %>% select (-c(age_group))
+
+# Summary of character type
+summary(data2)
+summary(data2$comorbidity_yes)
+summary(data2$comorbidity_no)
+
+# Convert to numeric so that data can be aggregated 
+data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
+data2$comorbidity_no <- as.numeric(data$comorbidity_no)
+
+# Aggregate data2
+data2 <- data2 %>%
+  group_by (region_cat, region, comorbidity, year) %>%
+  summarise (status = mean(status),
+             comorbidity_yes = sum(comorbidity_yes),
+             comorbidity_no = sum(comorbidity_no),
+             comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss),
+             comorbidity_prop = sum(comorbidity_prop),
+             comorbidity_lb = sum(comorbidity_lb),
+             comorbidity_ub = sum(comorbidity_ub))
+
 
 # Define UI ----
 ui <- fluidPage(
@@ -352,7 +377,7 @@ server <- function(input, output, session) {
     
     #### Create data subset for plot 2 ####
       data_subset_two = reactive({
-        subset(data, year==input$input_year2 & comorbidity==input$input_morbidity2 & region==input$input_region2, -age_group)
+        subset(data2, year==input$input_year2 & comorbidity==input$input_morbidity2 & region==input$input_region2)
       })
       #plot_two = subset(data, year=="2014" & comorbidity=="lung" & region=="National")
       
@@ -416,7 +441,6 @@ server <- function(input, output, session) {
       #        x = "Region",
       #        y = "Comorbidity Prevalence") +
       #   theme_minimal()
-      # 
       
 
     ###### PLOT 3 ######
@@ -434,17 +458,14 @@ server <- function(input, output, session) {
         
       })
         
-        # g3 = data %>%
+        #   g3 = data %>%
         #   group_by(region_cat,comorbidity) %>%
         #   ggplot(aes(y=prop, x=reorder(comorbidity, prop), fill = region_cat)) +
-        #   geom_bar(stat="identity" , position = position_dodge())
+        #   geom_bar(stat="identity" , position = position_dodge()) +
+        #   xlab("Comorbidity") +
+        #   ylab("Prevalance") 
 
         
-        
-       
- 
-      
-
 }
 
 # Run the app ----
