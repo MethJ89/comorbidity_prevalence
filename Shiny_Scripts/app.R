@@ -7,6 +7,8 @@ library(tidyverse)
 library(readxl)
 library(shinythemes)
 library(plotly)
+library(shinydashboard)
+library(DT)
 
 
 ### Load data
@@ -24,8 +26,6 @@ data2 <- data %>% select (-c(age_group))
 
 # Summary of character type
 summary(data2)
-summary(data2$comorbidity_yes)
-summary(data2$comorbidity_no)
 
 # Convert to numeric so that data can be aggregated 
 data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
@@ -79,6 +79,9 @@ ui <- fluidPage(
                                                       h4("Data Source"),
                                                       h5("The Clinical Practice Research Datalink (CPRD) GOLD is a comprehensive electronic health records database that contains anonymized medical information from general practices across the United Kingdom, encompassing data from approximately 11 million patients. Fully-coded patient electronic health records data is collected directly from GP practices. CPRD GOLD contains data contributed by practices using Vision® software"),
                                                       
+                                                      h4("Further Information"),
+                                                      h5("This dashboard was developed for a thesis which is part of a Health Data Science MSc at the London School and Hygiene and Tropical Medicine. Ethical approval was requestd in order to access and use the data in this dashboard"),
+                                                      
                                    ))),
                             
                             
@@ -104,10 +107,19 @@ ui <- fluidPage(
                                   
                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50",
                                             h4("Dashboard Guidance"),
-                                            p("Each tab contains a different "),
+                                            p("Each tab can be accessed using the navigation bar at the top of the dashboard. All graphs use CRPD GOLD data to create a different interactive visualisation."),
                                             
-                                  )
-                            
+                                  ),
+                                  
+                                  
+                                  wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50",
+                                            h4("GitHub"),
+                                            p("The underlying code for the app can be found on GitHub using the following link:"),
+                                            p("INSERT GITHUB LINK"),
+                                              
+                                  ),
+                                  
+                              
                             ),
                             
                           ),
@@ -195,26 +207,27 @@ ui <- fluidPage(
                  
                  
                  #### SECOND TAB ####
-                 
+             
                  tabPanel("Graph 2",
                           icon = icon("bar-chart"),
-                          
+      
                           sidebarLayout(
                             
                             ## Side bar panel for parameters
                             sidebarPanel(
                               width = 3,
+                              h3("Select Filters:"),
                               
-                              radioButtons("input_year2", label = h3("Select year"),
+                              radioButtons("input_year2", label = h4("Select year"),
                                            choices = list("2014", "2019"), 
                                            selected = 2014),
                               
-                              selectInput("input_region2" , label = h3("Select Region"),
+                              selectInput("input_region2" , label = h4("Select Region Type"),
                                           choices = list("National" = "National",
                                                          "Local" = "Local"),
                                           selected = "national"),
                               
-                              selectInput("input_morbidity2", label = h3("Select Comorbditity"), 
+                              selectInput("input_morbidity2", label = h4("Select Comorbditity"), 
                                           choices = list(
                                             "Liver" = "liver",
                                             "Heart" = "heart",
@@ -267,67 +280,65 @@ ui <- fluidPage(
                  
                  #### THIRD TAB ####
                  
-            
                  ## Third tab with third graph 
                  tabPanel("Graph 3",
                           icon = icon("bar-chart"),
                           
+                          sidebarLayout(
+                          
                           ## Side bar panel for parameters
                           sidebarPanel(
                             width = 3,
+                            h3("Select Filters:"),
                             
-                            radioButtons("input_year3", label = h3("Select year"),
+                            radioButtons("input_year3", label = h4("Select year"),
                                          choices = list("2014", "2019"), 
                                          selected = 2014),
                             
-                            selectInput("input_region3" , label = h3("Select Region"),
+                            selectInput("input_region3" , label = h4("Select Region Type"),
                                         choices = list("National" = "National",
                                                        "Local" = "Local"),
-                                        selected = "national"),
+                                        selected = "National"),
                             
-                            selectInput("input_morbidity3", label = h3("Select Comorbditity"), 
-                                        choices = list(
-                                          "Liver" = "liver",
-                                          "Heart" = "heart",
-                                          "Lung" = "lung",
-                                          "Diabetes" = "diabetes",
-                                          "Chronic Kidney Disease" = "ckd",
-                                          "Immunosuppression" = "immuno",
-                                          "Chronic neurological disease" = "neuro",
-                                          "Any history of asthma" = "asthma_ever",
-                                          "Current asthma (no COPD)" = "asthma_specific",
-                                          "Severe obesity" = "bmi_40",
-                                          "Any history of cancer" = "cancerever",
-                                          "Cancer (last 5 years)" = "cancerlast5yrs",
-                                          "Cancer (last year)" = "cancerlastyr",
-                                          "Cancer (last 6 months)" = "cancerlast6months",
-                                          "Dysplenia (including sickle cell disease)" = "si_sp",
-                                          "Any 'higher risk' health condition" = "nyonecond_prev",
-                                          "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
-                                          "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
-                                          "Organ transplant recipient" = "organ_tx",
-                                          "Multimorbidity" = "multi_prev"),
-                                        selected = "liver"),
+                            selectInput("input_region_cat3", label = h4("Select Region"), 
+                                        choices = NULL)
+                                          # list(
+                                          # "England" = "England",
+                                          # "Scotland" = "Scotland",
+                                          # "Wales" = "Wales",
+                                          # "Northern Ireland" = "Northern Ireland",
+                                          # "North East" = "North East",
+                                          # "East Midlands" = "East Midlands",
+                                          # "East of England" = "East of England",
+                                          # "London" = "London",
+                                          # "North West" = "North West",
+                                          # "South Central" = "South Central",
+                                          # "South East Coast" = "South East Coast",
+                                          # "South West" = "South West",
+                                          # "West Midlands" = "West Midlands",
+                                          # "Yorkshire & The Humber" = "Yorkshire & The Humber"),
+                                        # selected = "England"),
                             
                           ),
                           
                           
                           ## Create main panel for plot
                           mainPanel(
-                            h4("Graph 3 text"),
+                            h4("Figure 3: Bar Graph Illustrating Comorbidity Prevalance by Individual Region"),
                             tags$br(),
-                            p("Graph 3 explanation"),
+                            p("This graph illustrates the prevalance of comorbidities for each specific region, giving a greater level of granularity for each region by comorbidity"),
                             tags$br(),
-                            "Use the filters..., .",
+                            "Use the drop down and button on the left to select which region to view and for which specific year.",
                             
                             tags$br(),tags$br(),
                             div(style = "border: 2px solid #333;",
-                                plotlyOutput("interactive_fig3", height="300px", width="650px")),
+                                plotlyOutput("interactive_fig3", height="450px", width="750px")),
                             
                             p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
-                            
+                            p("Further information about the comorbidities can be found in the Comorbidity Table in the Help tab"),
                           ),
                           
+                          ),
                           
                           ## Add some background colour to tab
                           style = "background-color: #e8f5e9;"
@@ -340,14 +351,17 @@ ui <- fluidPage(
              navbarMenu("Help",
                         icon = icon("search"),
                         # First drop down in Help tab (information about graphs, morbidities, prevalance etc.)
-                        tabPanel("About", fluid = TRUE,
+                        tabPanel("Comorbidity Table", fluid = TRUE,
                                  fluidRow(
                                    column(6,
-                                          h4(p("Dashboard Info")),
-                                          h5(p("Test"),
-                                             p("test"),
+                                          h4(p("Comorbidity Table")),
+                                          h5(p("Description of all morbidities in the dashboard as well as their definitions"),
+                                             # Render table here
+                                             dataTableOutput("myTable")
                                           ))
                                  )),
+                        
+                    
                         # Second drop down in Help tab (any further information)
                         tabPanel("References", fluid = TRUE,
                                  fluidRow(
@@ -375,16 +389,16 @@ server <- function(input, output, session) {
         subset(data, year==input$input_year & comorbidity==input$input_morbidity & region==input$input_region)
     })
     
+      
     #### Create data subset for plot 2 ####
       data_subset_two = reactive({
         subset(data2, year==input$input_year2 & comorbidity==input$input_morbidity2 & region==input$input_region2)
       })
-      #plot_two = subset(data, year=="2014" & comorbidity=="lung" & region=="National")
       
       
     #### Create data subset for plot 3 ####
       data_subset_three = reactive({
-        subset(data, year==input$input_year3 & comorbidity==input$input_morbidity3 & region==input$input_region3)
+        subset(data2, year==input$input_year3 & region==input$input_region3 & region_cat==input$input_region_cat3)
       })
       
       
@@ -425,6 +439,7 @@ server <- function(input, output, session) {
                                               "Prevalance ", round(comorbidity_prop,1), "\n",
                                               "Region: ", region_cat))) +
           geom_bar(stat="identity") +
+          theme_bw() +
           coord_flip() +
           xlab("Region") +
           ylab("Prevalence/100,000") +
@@ -435,13 +450,6 @@ server <- function(input, output, session) {
          
       })
       
-      # g2 = ggplot(data, aes(x = region_cat, y = comorbidity_prop, fill = comorbidity)) +
-      #   geom_bar(stat = "identity") +
-      #   labs(title = "Comorbidity Prevalence by Region",
-      #        x = "Region",
-      #        y = "Comorbidity Prevalence") +
-      #   theme_minimal()
-      
 
     ###### PLOT 3 ######
     
@@ -449,25 +457,58 @@ server <- function(input, output, session) {
         
         plot_three = data_subset_three()
         
-        g3 = ggplot(plot_three, aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat)) +
-          geom_bar(stat="identity" , position = position_dodge) +
+        g3 = ggplot(plot_three, aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat,
+                                    text=paste0("Comorbidity: ", comorbidity, "\n",
+                                                "Prevalance ", round(comorbidity_prop,1), "\n", 
+                                                "Region: ", region_cat))) +
+          geom_bar(stat="identity" , position = position_dodge()) +
           xlab("Comorbidity") +
           ylab("Prevalance") +
+          theme_bw() +
+          labs(fill="Region") + 
+          theme(text = element_text(size=12), axis.text.x=element_text(angle = 45, hjust = 1)) +
+          scale_fill_manual(values = scales::hue_pal()(length(unique(plot_three$comorbidity)))) 
+          
           
           ggplotly(g3, tooltip = 'text')
         
       })
-        
-        #   g3 = data %>%
-        #   group_by(region_cat,comorbidity) %>%
-        #   ggplot(aes(y=prop, x=reorder(comorbidity, prop), fill = region_cat)) +
-        #   geom_bar(stat="identity" , position = position_dodge()) +
-        #   xlab("Comorbidity") +
-        #   ylab("Prevalance") 
+      
+      # Making second drop down values dependant on what is selected in the first 
+      
+      observe({
+        if(input$input_region3 == "National") {
+          updateSelectInput(session, "input_region_cat3" , "Select Region" , choices = c("England" , "Scotland" , "Wales" , "Northern Ireland"))
+        } else {
+          udpateSelectInput(session, "input_region_cat3" , "Select Region" , choices = c("North East" , "East Midlands", "East of England", "London", "North West", "South Central", "South East Coast", "South West", "West Midlands", "Yorkshire & The Humber"))
 
+        }
+      })
         
+      
+    ###### COMORBIDITY TABLE ######
+      
+      # Generate table with comorbidity information
+      table <- data.frame(
+        Comorbidity = c("liver" , "heart" , "lung" , "asthma_ever" , "asthma_specific" , "neuro" , "organ_tx" , "immuno" , "si_sp" , "immuno_no_si_sp" , "diabetes" , "ckd" , "cancerever" , "cancerlast5yrs" , "cancerlastyr" , "cancerlast6months" , "multi_prev" , "anyonecond_prev" , "anyonecond_prevbmi" , "bmi40"),
+       
+         Full_Name = c("Chronic liver disease" , "Chronic heart disease" , "Chronic respiratory disease" , "Any history of asthma" , "Current asthma (no COPD)" , "Chronic neurological disease" , "Organ transplant recipient" , "Immunosuppression" , "Dysplenia (including sickle cell disease)" , "Immunosuppression excluding dysplenia" , "Diabetes mellitus" , "Chronic kidney disease" , "Any history of cancer" , "Cancer (last 5 years)" , "Cancer (last year)" , "Cancer (last 6 months)" , "Multimorbidity"  , "Any 'higher risk' health condition" , "Any 'higher risk' risk factor", "Severe obesity"),
+       
+         Description = c("Chronic liver disease including cirrhosis, oesophageal varices, biliary atresia and chronic hepatitis." , "Chronic heart disease likely to need follow up or medication, including ischaemic heart disease and chronic heart failure." , "Chronic respiratory disease including COPD; bronchiectasis, cystic fibrosis, interstitial lung fibrosis, pneumoconiosis and bronchopulmonary dysplasia (BPD). Excludes asthma.", "Any previous diagnosis of asthma." , "A diagnosis of asthma within the previous 3 years, excluding people ever diagnosed with COPD." , "A diagnosis of stroke, transient ischaemic attack, or conditions in which respiratory function may be compromised due to neurological disease, such as myasthenia gravis." , "Solid organ transplant recipient." , "Immunosuppression due to disease or treatment" , "Asplenia or dysplenia, including sickle cell disease. Subset of immunosuppression." , "Subset of immunosuppression, excluding asplenia/dysplenia/sickle cell disease." , "Diabetes mellitus" , "Chronic kidney disease at stage 3, 4 or 5 (based on diagnoses or eGFR estimated from the latest serum creatinine test result), chronic kidney failure, nephrotic syndrome, kidney transplantation or dialysis" , "Any previous diagnosis of a malignant cancer" , "First diagnosis of a malignant cancer within the previous 5 years" , "First diagnosis of a malignant cancer within the previous year" , "First diagnosis of a malignant cancer within the previous 6 months" , "≥2 of the following domains: chronic liver disease; chronic heart disease; asthma or chronic respiratory disease (using asthma_specific definition); chronic neurological disease; immunosuppression (including organ transplant recipient, dysplenia and sickle cell disease); diabetes mellitus; chronic kidney disease. Does not include cancer or obesity.", "Any of the following: chronic liver disease; chronic heart disease; asthma or chronic respiratory disease (using the specific asthma definition); chronic neurological disease; immunosuppression (including organ transplant recipient, dysplenia and sickle cell disease); diabetes mellitus; chronic kidney disease." , "Any 'higher risk' health condition or severe obesity (BMI≥40 kg/m2). (BMI measurements only from age 18+)" , "Adult BMI ≥40 kg/m2 based on latest recorded height and weight since aged 18 years. Prevalence estimates restricted to age ≥20 years." )
+      )    
+         
+      # Render the table using DT package
+      output$myTable <- renderDataTable({
+        datatable(table)
+      })
 }
 
 # Run the app ----
 shinyApp(ui = ui, server = server)
+
+
+
+
+
+
 
