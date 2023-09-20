@@ -10,7 +10,6 @@ library(plotly)
 library(shinydashboard)
 library(DT)
 
-
 ### Load data
 Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
 # Combined_comorbidity_region <- read_excel("../Data/Combined_comorbidity_region.xlsx")
@@ -21,11 +20,12 @@ sm_cat <- read_excel("../Data/sm_cat.xlsx")
 # Rename file 
 data <- Combined_comorbidity_age_region
 
+# Changed all 'bmi_40' to 'bmi40' to merge into one category 
+data$comorbidity[data$comorbidity == 'bmi40'] <- 'bmi_40'
+
 # Create copy of 'data' dataframe without age_group column
 data2 <- data %>% select (-c(age_group))
 
-# Summary of character type
-summary(data2)
 
 # Convert to numeric so that data can be aggregated 
 data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
@@ -43,9 +43,40 @@ data2 <- data2 %>%
              comorbidity_ub = sum(comorbidity_ub))
 
 
+# Aggregate data3 with new column name
+data3 <- data2 %>% mutate (comorbidity_name = comorbidity)
+
+# Change values to contain full name of comorbidities 
+data3 <- data3 %>%
+  mutate(
+    comorbidity_name = case_when(
+      comorbidity_name == "liver" ~ "Liver", 
+      comorbidity_name == "heart" ~ "Heart",
+      comorbidity_name == "lung" ~ "Lung",
+      comorbidity_name == "diabetes" ~ "Diabetes" ,
+      comorbidity_name == "ckd" ~ "Chronic Kidney Disease",
+      comorbidity_name == "immuno" ~ "Immunosuppression",
+      comorbidity_name == "neuro" ~ "Chronic neurological disease",
+      comorbidity_name == "asthma_ever" ~ "Any history of asthma",
+      comorbidity_name == "asthma_specific" ~ "Current asthma (no COPD)",
+      comorbidity_name == "bmi_40" ~ "Severe obesity",
+      comorbidity_name == "cancerever" ~ "Any history of cancer",
+      comorbidity_name == "cancerlast5yrs" ~ "Cancer (last 5 years)",
+      comorbidity_name == "cancerlastyr" ~ "Cancer (last year)",
+      comorbidity_name == "cancerlast6months" ~ "Cancer (last 6 months)",
+      comorbidity_name == "si_sp"~ "Dysplenia (including sickle cell disease)",
+      comorbidity_name == "anyonecond_prev" ~ "Any 'higher risk' health condition",
+      comorbidity_name == "anyonecond_prevbmi" ~ "Any 'higher risk' risk factor",
+      comorbidity_name == "immuno_no_si_sp" ~ "Immunosuppression excluding dysplenia",
+      comorbidity_name == "organ_tx" ~ "Organ transplant recipient",
+      comorbidity_name == "multi_prev" ~ "Multimorbidity",
+      TRUE ~ comorbidity_name
+    )
+  )
+
+
 # Define UI ----
 ui <- fluidPage(
-
   
   navbarPage(windowTitle = "Window title",
                  theme = shinytheme("flatly"),
@@ -62,7 +93,8 @@ ui <- fluidPage(
                                    wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 900px;",
                                              fluidRow(style = "margin-top: 0px;",
                                                       h2("COVID-19 Comorbidity Prevalance Dashboard"),
-                                                      p("Dashboard based on study which looked at the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records"),
+                                                      p("Dashboard based on study which looked at the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records. The original study paper can be found here:"),
+                                                      a("Original Study" , href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7948667/#MOESM1", target = "_blank"),
                                                       tags$br(),
                                                       h4("Summary"),
                                                       h5("During the start of the COVID-19 pandemic, characterizing the size and distribution of the population who were at severe risk of catching the disease was vitally important for effective policy and planning. The study aimed to describe this at-risk population"),
@@ -84,16 +116,14 @@ ui <- fluidPage(
                                                       
                                    ))),
                             
-                            
                             column(4,
                                   wellPanel(style = "background-color: #fff; width:50; height: 200px;",
                                             fluidRow(style = "margin-top: 1px;",
                                                      div(style = "float: right; margin-top: 5px; margin-right: 5px;",
                                                          img(src = "https://www.lshtm.ac.uk/sites/default/files/LSHTM-logo-bw.jpg", 
-                                                             height = "150", width = "250",
+                                                             height = "150", width = "270",
                                                              alt = "Logo",
                                                              ),
-                                                         
                                             ))
                                             
                                             ),
@@ -108,26 +138,20 @@ ui <- fluidPage(
                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50",
                                             h4("Dashboard Guidance"),
                                             p("Each tab can be accessed using the navigation bar at the top of the dashboard. All graphs use CRPD GOLD data to create a different interactive visualisation."),
-                                            
                                   ),
-                                  
                                   
                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50",
                                             h4("GitHub"),
                                             p("The underlying code for the app can be found on GitHub using the following link:"),
-                                            p("INSERT GITHUB LINK"),
-                                              
+                                            a("GitHub Code" , href = "https://github.com/MethJ89/summer_thesis-", target = "_blank"),
+                                            
+                                           
                                   ),
-                                  
-                              
                             ),
-                            
                           ),
                           
                           style = "background-color:#fff;"
                  ),
-                 
-                 
                  
                  #### FIRST TAB ####
                  
@@ -165,7 +189,7 @@ ui <- fluidPage(
                                             "Cancer (last year)" = "cancerlastyr",
                                             "Cancer (last 6 months)" = "cancerlast6months",
                                             "Dysplenia (including sickle cell disease)" = "si_sp",
-                                            "Any 'higher risk' health condition" = "nyonecond_prev",
+                                            "Any 'higher risk' health condition" = "anyonecond_prev",
                                             "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
                                             "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
                                             "Organ transplant recipient" = "organ_tx",
@@ -196,13 +220,11 @@ ui <- fluidPage(
                               a("Additional Data" , href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7948667/table/Tab2/", target = "_blank")
 
                             )
-                            
                           ),  
-                          
                           
                           ## Add some background colour to tab
                           style = "background-color: #e8f5e9;"
-                          
+                         
                  ),
                  
                  
@@ -261,8 +283,7 @@ ui <- fluidPage(
                               tags$br(),
                               p("This graph displays the different comorbidity prevalance for the at-risj population for different regions"),
                               tags$br(),
-                              "Use the drop downs and buttons on the left to select the year, individual comorbidity and region type between national and local regions. 
- .",
+                              "Use the drop downs and buttons on the left to select the year, individual comorbidity and region type between national and local regions.",
                               tags$br(),tags$br(),
                               div(style = "border: 2px solid #333;",
                               plotlyOutput("interactive_fig2", height="400px", width="750px")),
@@ -270,7 +291,6 @@ ui <- fluidPage(
                               p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
                               
                             )
-                            
                           ),
                           
                           ## Add some background colour to tab
@@ -302,25 +322,8 @@ ui <- fluidPage(
                             
                             selectInput("input_region_cat3", label = h4("Select Region"), 
                                         choices = NULL)
-                                          # list(
-                                          # "England" = "England",
-                                          # "Scotland" = "Scotland",
-                                          # "Wales" = "Wales",
-                                          # "Northern Ireland" = "Northern Ireland",
-                                          # "North East" = "North East",
-                                          # "East Midlands" = "East Midlands",
-                                          # "East of England" = "East of England",
-                                          # "London" = "London",
-                                          # "North West" = "North West",
-                                          # "South Central" = "South Central",
-                                          # "South East Coast" = "South East Coast",
-                                          # "South West" = "South West",
-                                          # "West Midlands" = "West Midlands",
-                                          # "Yorkshire & The Humber" = "Yorkshire & The Humber"),
-                                        # selected = "England"),
                             
                           ),
-                          
                           
                           ## Create main panel for plot
                           mainPanel(
@@ -335,7 +338,7 @@ ui <- fluidPage(
                                 plotlyOutput("interactive_fig3", height="450px", width="750px")),
                             
                             p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
-                            p("Further information about the comorbidities can be found in the Comorbidity Table in the Help tab"),
+                            p("Further information about the comorbidities and their corresponding descriptions can be found in the Comorbidity Table under the Help tab"),
                           ),
                           
                           ),
@@ -344,7 +347,6 @@ ui <- fluidPage(
                           style = "background-color: #e8f5e9;"
                  ),
                  
-             
              
              
                 #### HELP TAB ####
@@ -372,12 +374,9 @@ ui <- fluidPage(
                                           h5(p("(3) https://cprd.com/primary-care-data-public-health-research")),
                                           )
                                  ))
-                        
              ),
-             
-             
-             
 ))
+
 
 # Define server logic ----
 server <- function(input, output, session) {
@@ -398,11 +397,10 @@ server <- function(input, output, session) {
       
     #### Create data subset for plot 3 ####
       data_subset_three = reactive({
-        subset(data2, year==input$input_year3 & region==input$input_region3 & region_cat==input$input_region_cat3)
+        subset(data3, year==input$input_year3 & region==input$input_region3 & region_cat==input$input_region_cat3)
       })
       
       
-    
     ###### PLOT 1 ######
 
       # Regional prevalence plot
@@ -444,7 +442,6 @@ server <- function(input, output, session) {
           xlab("Region") +
           ylab("Prevalence/100,000") +
           labs(fill="Region") 
-    
         
         ggplotly(g2, tooltip = 'text')
          
@@ -457,8 +454,8 @@ server <- function(input, output, session) {
         
         plot_three = data_subset_three()
         
-        g3 = ggplot(plot_three, aes(y=comorbidity_prop, x=reorder(comorbidity, comorbidity_prop), fill = region_cat,
-                                    text=paste0("Comorbidity: ", comorbidity, "\n",
+        g3 = ggplot(plot_three, aes(y=comorbidity_prop, x=reorder(comorbidity_name, comorbidity_prop), fill = region_cat,
+                                    text=paste0("Comorbidity: ", comorbidity_name, "\n",
                                                 "Prevalance ", round(comorbidity_prop,1), "\n", 
                                                 "Region: ", region_cat))) +
           geom_bar(stat="identity" , position = position_dodge()) +
@@ -466,9 +463,9 @@ server <- function(input, output, session) {
           ylab("Prevalance") +
           theme_bw() +
           labs(fill="Region") + 
+          coord_flip() +
           theme(text = element_text(size=12), axis.text.x=element_text(angle = 45, hjust = 1)) +
-          scale_fill_manual(values = scales::hue_pal()(length(unique(plot_three$comorbidity)))) 
-          
+          scale_fill_manual(values = scales::hue_pal()(length(unique(plot_three$comorbidity_name)))) 
           
           ggplotly(g3, tooltip = 'text')
         
@@ -480,7 +477,7 @@ server <- function(input, output, session) {
         if(input$input_region3 == "National") {
           updateSelectInput(session, "input_region_cat3" , "Select Region" , choices = c("England" , "Scotland" , "Wales" , "Northern Ireland"))
         } else {
-          udpateSelectInput(session, "input_region_cat3" , "Select Region" , choices = c("North East" , "East Midlands", "East of England", "London", "North West", "South Central", "South East Coast", "South West", "West Midlands", "Yorkshire & The Humber"))
+          updateSelectInput(session, "input_region_cat3" , "Select Region" , choices = c("North East" , "East Midlands", "East of England", "London", "North West", "South Central", "South East Coast", "South West", "West Midlands", "Yorkshire & The Humber"))
 
         }
       })
@@ -490,9 +487,10 @@ server <- function(input, output, session) {
       
       # Generate table with comorbidity information
       table <- data.frame(
-        Comorbidity = c("liver" , "heart" , "lung" , "asthma_ever" , "asthma_specific" , "neuro" , "organ_tx" , "immuno" , "si_sp" , "immuno_no_si_sp" , "diabetes" , "ckd" , "cancerever" , "cancerlast5yrs" , "cancerlastyr" , "cancerlast6months" , "multi_prev" , "anyonecond_prev" , "anyonecond_prevbmi" , "bmi40"),
-       
-         Full_Name = c("Chronic liver disease" , "Chronic heart disease" , "Chronic respiratory disease" , "Any history of asthma" , "Current asthma (no COPD)" , "Chronic neurological disease" , "Organ transplant recipient" , "Immunosuppression" , "Dysplenia (including sickle cell disease)" , "Immunosuppression excluding dysplenia" , "Diabetes mellitus" , "Chronic kidney disease" , "Any history of cancer" , "Cancer (last 5 years)" , "Cancer (last year)" , "Cancer (last 6 months)" , "Multimorbidity"  , "Any 'higher risk' health condition" , "Any 'higher risk' risk factor", "Severe obesity"),
+         Comorbidity_Name = c("Chronic liver disease" , "Chronic heart disease" , "Chronic respiratory disease" , "Any history of asthma" , "Current asthma (no COPD)" , "Chronic neurological disease" , "Organ transplant recipient" , "Immunosuppression" , "Dysplenia (including sickle cell disease)" , "Immunosuppression excluding dysplenia" , "Diabetes mellitus" , "Chronic kidney disease" , "Any history of cancer" , "Cancer (last 5 years)" , "Cancer (last year)" , "Cancer (last 6 months)" , "Multimorbidity"  , "Any 'higher risk' health condition" , "Any 'higher risk' risk factor", "Severe obesity"),
+         
+         Study_Name = c("liver" , "heart" , "lung" , "asthma_ever" , "asthma_specific" , "neuro" , "organ_tx" , "immuno" , "si_sp" , "immuno_no_si_sp" , "diabetes" , "ckd" , "cancerever" , "cancerlast5yrs" , "cancerlastyr" , "cancerlast6months" , "multi_prev" , "anyonecond_prev" , "anyonecond_prevbmi" , "bmi40"),
+         
        
          Description = c("Chronic liver disease including cirrhosis, oesophageal varices, biliary atresia and chronic hepatitis." , "Chronic heart disease likely to need follow up or medication, including ischaemic heart disease and chronic heart failure." , "Chronic respiratory disease including COPD; bronchiectasis, cystic fibrosis, interstitial lung fibrosis, pneumoconiosis and bronchopulmonary dysplasia (BPD). Excludes asthma.", "Any previous diagnosis of asthma." , "A diagnosis of asthma within the previous 3 years, excluding people ever diagnosed with COPD." , "A diagnosis of stroke, transient ischaemic attack, or conditions in which respiratory function may be compromised due to neurological disease, such as myasthenia gravis." , "Solid organ transplant recipient." , "Immunosuppression due to disease or treatment" , "Asplenia or dysplenia, including sickle cell disease. Subset of immunosuppression." , "Subset of immunosuppression, excluding asplenia/dysplenia/sickle cell disease." , "Diabetes mellitus" , "Chronic kidney disease at stage 3, 4 or 5 (based on diagnoses or eGFR estimated from the latest serum creatinine test result), chronic kidney failure, nephrotic syndrome, kidney transplantation or dialysis" , "Any previous diagnosis of a malignant cancer" , "First diagnosis of a malignant cancer within the previous 5 years" , "First diagnosis of a malignant cancer within the previous year" , "First diagnosis of a malignant cancer within the previous 6 months" , "≥2 of the following domains: chronic liver disease; chronic heart disease; asthma or chronic respiratory disease (using asthma_specific definition); chronic neurological disease; immunosuppression (including organ transplant recipient, dysplenia and sickle cell disease); diabetes mellitus; chronic kidney disease. Does not include cancer or obesity.", "Any of the following: chronic liver disease; chronic heart disease; asthma or chronic respiratory disease (using the specific asthma definition); chronic neurological disease; immunosuppression (including organ transplant recipient, dysplenia and sickle cell disease); diabetes mellitus; chronic kidney disease." , "Any 'higher risk' health condition or severe obesity (BMI≥40 kg/m2). (BMI measurements only from age 18+)" , "Adult BMI ≥40 kg/m2 based on latest recorded height and weight since aged 18 years. Prevalence estimates restricted to age ≥20 years." )
       )    
