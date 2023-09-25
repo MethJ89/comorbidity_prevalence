@@ -9,6 +9,9 @@ library(shinythemes)
 library(plotly)
 library(shinydashboard)
 library(DT)
+library(scales)
+
+
 
 ### Load data
 Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
@@ -26,7 +29,6 @@ data$comorbidity[data$comorbidity == 'bmi40'] <- 'bmi_40'
 # Create copy of 'data' dataframe without age_group column
 data2 <- data %>% select (-c(age_group))
 
-
 # Convert to numeric so that data can be aggregated 
 data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
 data2$comorbidity_no <- as.numeric(data$comorbidity_no)
@@ -42,7 +44,6 @@ data2 <- data2 %>%
              comorbidity_lb = sum(comorbidity_lb),
              comorbidity_ub = sum(comorbidity_ub))
 
-
 # Aggregate data3 with new column name
 data3 <- data2 %>% mutate (comorbidity_name = comorbidity)
 
@@ -50,9 +51,9 @@ data3 <- data2 %>% mutate (comorbidity_name = comorbidity)
 data3 <- data3 %>%
   mutate(
     comorbidity_name = case_when(
-      comorbidity_name == "liver" ~ "Liver", 
-      comorbidity_name == "heart" ~ "Heart",
-      comorbidity_name == "lung" ~ "Lung",
+      comorbidity_name == "liver" ~ "Chronic Liver Disease", 
+      comorbidity_name == "heart" ~ "Chronic Heart Disease",
+      comorbidity_name == "lung" ~ "Chronic Lung Disease",
       comorbidity_name == "diabetes" ~ "Diabetes" ,
       comorbidity_name == "ckd" ~ "Chronic Kidney Disease",
       comorbidity_name == "immuno" ~ "Immunosuppression",
@@ -90,14 +91,19 @@ ui <- fluidPage(
                    
                           fluidRow(
                             column(8,
-                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 900px;",
+                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 850px;",
                                              fluidRow(style = "margin-top: 0px;",
-                                                      h2("COVID-19 Comorbidity Prevalance Dashboard"),
+                                                      h2("COVID-19 Comorbidity Prevalence Dashboard"),
                                                       p("Dashboard based on study which looked at the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records. The original study paper can be found here:"),
                                                       a("Original Study" , href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7948667/#MOESM1", target = "_blank"),
-                                                      tags$br(),
+                                                      
+                                                      h5("This dashboard was developed for a thesis which is part of a Health Data Science MSc at the London School and Hygiene and Tropical Medicine. Ethical approval for this follow-up study was obtained from the LSHTM Research Ethics Committee. All data are openly available via LSHTM Data Compass:"),
+                                                      a("LSHTM Data Compass" , href = "https://datacompass.lshtm.ac.uk/id/eprint/1833/", target = "_blank"),
+                                                
                                                       h4("Summary"),
                                                       h5("During the start of the COVID-19 pandemic, characterizing the size and distribution of the population who were at severe risk of catching the disease was vitally important for effective policy and planning. The study aimed to describe this at-risk population"),
+                                                      
+                                                      
                                                       h4("Aims"),
                                                       h5("The main aim of the study was to identify the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease (1)."),
                                                       
@@ -109,12 +115,22 @@ ui <- fluidPage(
                                                       h5("The study concludes that the population at risk of severe COVID-19 comprises 18.5 million individuals in the UK – defined as either aged over 70 years, or under 70 but with an underlying health condition. The national estimates from the study broadly support the use of Global Burden of Disease modelled estimates in other countries. "),
                                                       
                                                       h4("Data Source"),
-                                                      h5("The Clinical Practice Research Datalink (CPRD) GOLD is a comprehensive electronic health records database that contains anonymized medical information from general practices across the United Kingdom, encompassing data from approximately 11 million patients. Fully-coded patient electronic health records data is collected directly from GP practices. CPRD GOLD contains data contributed by practices using Vision® software"),
+                                                      h5("The Clinical Practice Research Datalink (CPRD) GOLD is a comprehensive electronic health records database that contains anonymized medical information from general practices across the United Kingdom, encompassing data from approximately 11 million patients. Fully coded patient electronic health records data is collected directly from GP practices. CPRD GOLD contains data contributed by practices using Vision® software"),
                                                       
-                                                      h4("Further Information"),
-                                                      h5("This dashboard was developed for a thesis which is part of a Health Data Science MSc at the London School and Hygiene and Tropical Medicine. Ethical approval was requestd in order to access and use the data in this dashboard"),
+                                   )),
+                                   
+                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 150px;",
+                                             fluidRow(style = "margin-top: 0px;",
+                                                      h5("References"),
+                                                      h6("(1) Walker JL, Grint DJ, Strongman H, Eggo RM, Peppa M, Minassian C, et al. UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records. BMC Public Health. 2021 Mar 11;21(1):484."),
+                                                      h6("(2) Skou ST, Mair FS, Fortin M, Guthrie B, Nunes BP, Miranda JJ, et al. Multimorbidity. Nat Rev Dis Primer. 2022 Jul 14;8(1):48."),
                                                       
-                                   ))),
+                                                      h6("(3) https://cprd.com/primary-care-data-public-health-research"),
+                                                      
+                                             )),
+                                   ),
+                            
+                            
                             
                             column(4,
                                   wellPanel(style = "background-color: #fff; width:50; height: 200px;",
@@ -174,9 +190,9 @@ ui <- fluidPage(
                               ## Create selectInput for comorbidity
                               selectInput("input_morbidity", label = h4("Comorbidity"), 
                                           choices = list(
-                                            "Liver" = "liver",
-                                            "Heart" = "heart",
-                                            "Lung" = "lung",
+                                            "Chronic Liver Disease" = "liver",
+                                            "Chronic Heart Disease" = "heart",
+                                            "Chronic Lung Disease" = "lung",
                                             "Diabetes" = "diabetes",
                                             "Chronic Kidney Disease" = "ckd",
                                             "Immunosuppression" = "immuno",
@@ -251,9 +267,9 @@ ui <- fluidPage(
                               
                               selectInput("input_morbidity2", label = h4("Select Comorbditity"), 
                                           choices = list(
-                                            "Liver" = "liver",
-                                            "Heart" = "heart",
-                                            "Lung" = "lung",
+                                            "Chronic Liver" = "liver",
+                                            "Chronic Heart" = "heart",
+                                            "Chronic Lung" = "lung",
                                             "Diabetes" = "diabetes",
                                             "Chronic Kidney Disease" = "ckd",
                                             "Immunosuppression" = "immuno",
@@ -461,6 +477,7 @@ server <- function(input, output, session) {
           geom_bar(stat="identity" , position = position_dodge()) +
           xlab("Comorbidity") +
           ylab("Prevalance") +
+          scale_y_continuous(labels = scales::comma) +
           theme_bw() +
           labs(fill="Region") + 
           coord_flip() +
