@@ -12,7 +12,6 @@ library(DT)
 library(scales)
 
 
-
 ### Load data
 Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
 # Combined_comorbidity_region <- read_excel("../Data/Combined_comorbidity_region.xlsx")
@@ -23,8 +22,12 @@ sm_cat <- read_excel("../Data/sm_cat.xlsx")
 # Rename file 
 data <- Combined_comorbidity_age_region
 
-# Changed all 'bmi_40' to 'bmi40' to merge into one category 
+# Changed all 'bmi40' to 'bmi_40' to merge into one category 
 data$comorbidity[data$comorbidity == 'bmi40'] <- 'bmi_40'
+
+# 
+data$comorbidity_yes[data$comorbidity_yes == '<5'] <- '0'
+data$comorbidity_no[data$comorbidity_no == 'suppressed'] <- '0'
 
 # Create copy of 'data' dataframe without age_group column
 data2 <- data %>% select (-c(age_group))
@@ -32,17 +35,22 @@ data2 <- data %>% select (-c(age_group))
 # Convert to numeric so that data can be aggregated 
 data2$comorbidity_yes <- as.numeric(data$comorbidity_yes)
 data2$comorbidity_no <- as.numeric(data$comorbidity_no)
-
+ 
 # Aggregate data2
 data2 <- data2 %>%
   group_by (region_cat, region, comorbidity, year) %>%
   summarise (status = mean(status),
              comorbidity_yes = sum(comorbidity_yes),
-             comorbidity_no = sum(comorbidity_no),
+             comorbidity_no = sum(comorbidity_no) ,
              comorbidity_tot_non_miss = sum(comorbidity_tot_non_miss),
              comorbidity_prop = sum(comorbidity_prop),
              comorbidity_lb = sum(comorbidity_lb),
-             comorbidity_ub = sum(comorbidity_ub))
+             comorbidity_ub = sum(comorbidity_ub)) 
+
+
+# Calculate new prevalence based on total comorbidity over total population 
+data2 <- data2 %>% mutate(comorbidity_prop_new = comorbidity_yes/comorbidity_tot_non_miss*100000)
+
 
 # Aggregate data3 with new column name
 data3 <- data2 %>% mutate (comorbidity_name = comorbidity)
@@ -77,9 +85,7 @@ data3 <- data3 %>%
 
 
 # Define UI ----
-ui <- fluidPage(
-  
-  navbarPage(windowTitle = "Window title",
+ui <- navbarPage(windowTitle = "Window title",
                  theme = shinytheme("flatly"),
                  title = "LSHTM",
                  
@@ -91,7 +97,7 @@ ui <- fluidPage(
                    
                           fluidRow(
                             column(8,
-                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 850px;",
+                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50; height: 700px;",
                                              fluidRow(style = "margin-top: 0px;",
                                                       h2("COVID-19 Comorbidity Prevalence Dashboard"),
                                                       p("Dashboard based on study which looked at the UK prevalence of underlying conditions which increase the risk of severe COVID-19 disease: a point prevalence study using electronic health records. The original study paper can be found here:"),
@@ -145,9 +151,9 @@ ui <- fluidPage(
                                             ),
                                   wellPanel(style = "background-color: #f0f0f0; border-color: #2c3e50",
                                             h4("Dashboard Summary"),
-                                            p("Graph 1: Line Graph Illustrating Comorbidity Prevalance by Age-Group"),
-                                            p("Graph 2: Bar Graph Illustrating Comorbidity Prevalance Grouped by Region"),
-                                            p("Graph 3: Bar Graph Illustrating Comorbidity Prevalance by Specific Region"),
+                                            p("Graph 1: Line Graph Illustrating Comorbidity Prevalence by Age-Group"),
+                                            p("Graph 2: Bar Graph Illustrating Comorbidity Prevalence Grouped by Region"),
+                                            p("Graph 3: Bar Graph Illustrating Comorbidity Prevalence by Specific Region"),
                                             p(" "),
                                                                       ),
                                   
@@ -161,7 +167,6 @@ ui <- fluidPage(
                                             p("The underlying code for the app can be found on GitHub using the following link:"),
                                             a("GitHub Code" , href = "https://github.com/MethJ89/summer_thesis-", target = "_blank"),
                                             
-                                           
                                   ),
                             ),
                           ),
@@ -212,6 +217,7 @@ ui <- fluidPage(
                                             "Multimorbidity" = "multi_prev"),
                                           selected = "liver"),
                               
+  
                               ## Create selectInput for region
                               selectInput("input_region" , label = h4("Region Type"),
                                           choices = list("National" = "National",
@@ -222,7 +228,7 @@ ui <- fluidPage(
                          
                             ## Create main panel for plots
                             mainPanel(
-                              h4("Figure 1: Line Graph Illustrating Comorbidity Prevalance by Age-Group"),
+                              h4("Graph 1: Line Graph Illustrating Comorbidity Prevalence by Age-Group"),
                               tags$br(),
                               p("This graph displays the age distribution of the at-risk population for different underlying health conditions"),
                               tags$br(),
@@ -231,7 +237,7 @@ ui <- fluidPage(
                                  div(style = "border: 2px solid #333;",
                                    plotlyOutput("interactive_fig1", height="400px", width="750px")),
                               
-                              p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
+                              p("Hover over a point in the graph to get additional information regarding prevalence estimates "),
                               p("Further information can be found below:"),
                               a("Additional Data" , href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7948667/table/Tab2/", target = "_blank")
 
@@ -267,9 +273,9 @@ ui <- fluidPage(
                               
                               selectInput("input_morbidity2", label = h4("Select Comorbditity"), 
                                           choices = list(
-                                            "Chronic Liver" = "liver",
-                                            "Chronic Heart" = "heart",
-                                            "Chronic Lung" = "lung",
+                                            "Chronic Liver Disease" = "liver",
+                                            "Chronic Heart Disease" = "heart",
+                                            "Chronic Lung Disease" = "lung",
                                             "Diabetes" = "diabetes",
                                             "Chronic Kidney Disease" = "ckd",
                                             "Immunosuppression" = "immuno",
@@ -282,7 +288,7 @@ ui <- fluidPage(
                                             "Cancer (last year)" = "cancerlastyr",
                                             "Cancer (last 6 months)" = "cancerlast6months",
                                             "Dysplenia (including sickle cell disease)" = "si_sp",
-                                            "Any 'higher risk' health condition" = "nyonecond_prev",
+                                            "Any 'higher risk' health condition" = "anyonecond_prev",
                                             "Any 'higher risk' risk factor" = "anyonecond_prevbmi",
                                             "Immunosuppression excluding dysplenia" = "immuno_no_si_sp",
                                             "Organ transplant recipient" = "organ_tx",
@@ -291,20 +297,21 @@ ui <- fluidPage(
                               
                             ),
                             
+                            
                             ## Use the drop downs and buttons on the left to select the year, individual comorbidity and region type between national and local regions. 
                             
                             ## Create main panel for plot
                             mainPanel(
-                              h4("Figure 2: Bar Graph Illustrating Comorbidity Prevalance by Region"),
+                              h4("Graph 2: Bar Graph Illustrating Comorbidity Prevalence by Region"),
                               tags$br(),
-                              p("This graph displays the different comorbidity prevalance for the at-risj population for different regions"),
+                              p("This graph displays the different comorbidity prevalence for the at-risj population for different regions"),
                               tags$br(),
                               "Use the drop downs and buttons on the left to select the year, individual comorbidity and region type between national and local regions.",
                               tags$br(),tags$br(),
                               div(style = "border: 2px solid #333;",
                               plotlyOutput("interactive_fig2", height="400px", width="750px")),
                               
-                              p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
+                              p("Hover over a point in the graph to get additional information regarding prevalence estimates "),
                               
                             )
                           ),
@@ -343,9 +350,9 @@ ui <- fluidPage(
                           
                           ## Create main panel for plot
                           mainPanel(
-                            h4("Figure 3: Bar Graph Illustrating Comorbidity Prevalance by Individual Region"),
+                            h4("Graph 3: Bar Graph Illustrating Comorbidity Prevalence by Individual Region"),
                             tags$br(),
-                            p("This graph illustrates the prevalance of comorbidities for each specific region, giving a greater level of granularity for each region by comorbidity"),
+                            p("This graph illustrates the prevalence of comorbidities for each specific region, giving a greater level of granularity for each region by comorbidity"),
                             tags$br(),
                             "Use the drop down and button on the left to select which region to view and for which specific year.",
                             
@@ -353,7 +360,7 @@ ui <- fluidPage(
                             div(style = "border: 2px solid #333;",
                                 plotlyOutput("interactive_fig3", height="450px", width="750px")),
                             
-                            p("Hover over a point in the graph to get additional information regarding prevalance estimates "),
+                            p("Hover over a point in the graph to get additional information regarding prevalence estimates "),
                             p("Further information about the comorbidities and their corresponding descriptions can be found in the Comorbidity Table under the Help tab"),
                           ),
                           
@@ -367,8 +374,8 @@ ui <- fluidPage(
              
                 #### HELP TAB ####
              navbarMenu("Help",
-                        icon = icon("search"),
-                        # First drop down in Help tab (information about graphs, morbidities, prevalance etc.)
+                        icon = icon("question"),
+                        # First drop down in Help tab (information about graphs, morbidities, prevalence etc.)
                         tabPanel("Comorbidity Table", fluid = TRUE,
                                  fluidRow(
                                    column(6,
@@ -391,10 +398,10 @@ ui <- fluidPage(
                                           )
                                  ))
              ),
-))
+)
 
 
-# Define server logic ----
+# Define server logic 
 server <- function(input, output, session) {
 
   ###### CREATE GRAPH SUBSETS ######
@@ -428,13 +435,13 @@ server <- function(input, output, session) {
         
         g1 = ggplot(plot_one, aes(x=age_group, y=comorbidity_prop, colour = region_cat, group = region_cat,
                                    text=paste0("Comorbidity: ", comorbidity, "\n",
-                                               "Prevalance ", round(comorbidity_prop,1), " per 100,000", "\n",
+                                               "Prevalence ", round(comorbidity_prop,1), " per 100,000", "\n",
                                                "Region: ", region_cat, "\n",
                                                "Age Group: ", age_group))) +
             geom_line() +
             theme_bw() +
             xlab("Age Bands (years)") +
-            ylab("Prevalence (per 100,000 people)") +
+            ylab("Prevalence / 100,000") +
             labs(colour="Region") +
             theme(text = element_text(size=12), axis.text.x=element_text(angle = 45, hjust = 1))
         
@@ -448,16 +455,18 @@ server <- function(input, output, session) {
 
          plot_two = data_subset_two()
 
-        g2 = ggplot(plot_two, aes(y=comorbidity_prop, x=region_cat, fill=region_cat,
+        g2 = ggplot(plot_two, aes(y=comorbidity_prop_new, x=region_cat, fill=region_cat,
                                   text=paste0("Comorbidity: ", comorbidity, "\n",
-                                              "Prevalance ", round(comorbidity_prop,1), "\n",
+                                              "Prevalence ", round(comorbidity_prop_new,1), "\n",
                                               "Region: ", region_cat))) +
           geom_bar(stat="identity") +
           theme_bw() +
           coord_flip() +
           xlab("Region") +
-          ylab("Prevalence/100,000") +
-          labs(fill="Region") 
+          ylab("Prevalence / 100,000") +
+          labs(fill="Region") +
+          theme(text = element_text(size=12), axis.text.x=element_text(angle = 45, hjust = 1)) +
+          scale_fill_manual(values = scales::hue_pal()(length(unique(plot_two$region_cat)))) 
         
         ggplotly(g2, tooltip = 'text')
          
@@ -470,13 +479,13 @@ server <- function(input, output, session) {
         
         plot_three = data_subset_three()
         
-        g3 = ggplot(plot_three, aes(y=comorbidity_prop, x=reorder(comorbidity_name, comorbidity_prop), fill = region_cat,
+        g3 = ggplot(plot_three, aes(y=comorbidity_prop_new, x=reorder(comorbidity_name, comorbidity_prop_new), fill = region_cat,
                                     text=paste0("Comorbidity: ", comorbidity_name, "\n",
-                                                "Prevalance ", round(comorbidity_prop,1), "\n", 
+                                                "Prevalence ", round(comorbidity_prop_new,1), "\n", 
                                                 "Region: ", region_cat))) +
           geom_bar(stat="identity" , position = position_dodge()) +
           xlab("Comorbidity") +
-          ylab("Prevalance") +
+          ylab("Prevalence  / 100,000") +
           scale_y_continuous(labels = scales::comma) +
           theme_bw() +
           labs(fill="Region") + 
@@ -488,7 +497,7 @@ server <- function(input, output, session) {
         
       })
       
-      # Making second drop down values dependant on what is selected in the first 
+      # Making second drop down values dependent on what is selected in the first 
       
       observe({
         if(input$input_region3 == "National") {
