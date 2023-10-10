@@ -1,5 +1,48 @@
 
-### Load  packages
+#######################
+#####  PREAMBLE  ##### 
+#######################
+
+
+##### INSTALL AND LOAD PACKAGES ##### 
+
+### Install Packages ### 
+
+# Define vector of packages that require installation 
+packages_to_install <- c("shiny",
+                         "tidyr",
+                         "ggplot2",
+                         "tidyverse",
+                         "readxl",
+                         "shinythemes",
+                         "plotly",
+                         "shinydashboard",
+                         "DT",
+                         "scales",
+                         "rsconnect",
+                         "readr")
+
+# Create a function to check and install packages
+install_if_missing <- function(packages) {
+  # Get the list of installed packages
+  installed_packages <- row.names(installed.packages())
+  
+  # Loop through the packages requiring installation
+  for (package in packages) {
+    # Check if the package is not in the list of installed packages
+    if (!(package %in% installed_packages)) {
+      # If not installed, install the package
+      install.packages(package)
+    } else {
+      # Print message if already installed
+      cat(paste(package, "is already installed.\n"))
+    }
+  }
+}
+# Call the function to install packages not installed
+install_if_missing(packages_to_install)
+
+### Load Packages ### 
 library(shiny)
 library(tidyr)
 library(ggplot2)
@@ -10,14 +53,15 @@ library(plotly)
 library(shinydashboard)
 library(DT)
 library(scales)
+library(rsconnect)
+library(readr)
 
+
+##### IMPORT AND LOAD DATA ##### 
 
 ### Load data
-Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
-# Combined_comorbidity_region <- read_excel("../Data/Combined_comorbidity_region.xlsx")
-bmi_cat <- read_excel("../Data/bmi_cat.xlsx")
-ethnicity <- read_excel("../Data/ethnicity.xlsx")
-sm_cat <- read_excel("../Data/sm_cat.xlsx")
+# Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
+Combined_comorbidity_age_region <- read_csv("../Data/Combined_comorbidity_age_region.csv")
 
 # Rename file 
 data <- Combined_comorbidity_age_region
@@ -25,7 +69,7 @@ data <- Combined_comorbidity_age_region
 # Changed all 'bmi40' to 'bmi_40' to merge into one category 
 data$comorbidity[data$comorbidity == 'bmi40'] <- 'bmi_40'
 
-# 
+# Values of <5 and 'suppressed' were converted to 0 to allow for aggregation to occur 
 data$comorbidity_yes[data$comorbidity_yes == '<5'] <- '0'
 data$comorbidity_no[data$comorbidity_no == 'suppressed'] <- '0'
 
@@ -83,8 +127,11 @@ data3 <- data3 %>%
     )
   )
 
+#######################
+#####  DEFINE UI  ##### 
+#######################
 
-# Define UI ----
+## Create navigation bar and theme 
 ui <- navbarPage(windowTitle = "Window title",
                  theme = shinytheme("flatly"),
                  title = "LSHTM",
@@ -298,8 +345,6 @@ ui <- navbarPage(windowTitle = "Window title",
                             ),
                             
                             
-                            ## Use the drop downs and buttons on the left to select the year, individual comorbidity and region type between national and local regions. 
-                            
                             ## Create main panel for plot
                             mainPanel(
                               h4("Graph 2: Bar Graph Illustrating Comorbidity Prevalence by Region"),
@@ -400,11 +445,13 @@ ui <- navbarPage(windowTitle = "Window title",
              ),
 )
 
+#################################
+#####  DEFINE SERVER LOGIC #####  
+#################################
 
-# Define server logic 
 server <- function(input, output, session) {
 
-  ###### CREATE GRAPH SUBSETS ######
+  ## Create Graph Subset ##
   
     #### Create data subset for plot 1 ####
       data_subset_one = reactive({ 
@@ -457,7 +504,7 @@ server <- function(input, output, session) {
 
         g2 = ggplot(plot_two, aes(y=comorbidity_prop_new, x=region_cat, fill=region_cat,
                                   text=paste0("Comorbidity: ", comorbidity, "\n",
-                                              "Prevalence ", round(comorbidity_prop_new,1), "\n",
+                                              "Prevalence ", round(comorbidity_prop_new,1)," per 100,000","\n",
                                               "Region: ", region_cat))) +
           geom_bar(stat="identity") +
           theme_bw() +
@@ -481,7 +528,7 @@ server <- function(input, output, session) {
         
         g3 = ggplot(plot_three, aes(y=comorbidity_prop_new, x=reorder(comorbidity_name, comorbidity_prop_new), fill = region_cat,
                                     text=paste0("Comorbidity: ", comorbidity_name, "\n",
-                                                "Prevalence ", round(comorbidity_prop_new,1), "\n", 
+                                                "Prevalence ", round(comorbidity_prop_new,1), " per 100,000", "\n", 
                                                 "Region: ", region_cat))) +
           geom_bar(stat="identity" , position = position_dodge()) +
           xlab("Comorbidity") +
@@ -527,12 +574,13 @@ server <- function(input, output, session) {
       })
 }
 
-# Run the app ----
+# Run the app 
 shinyApp(ui = ui, server = server)
 
 
-
-
+# Publish the app 
+# library(rsconnect)
+# rsconnect::deployApp(account = "meth-j")
 
 
 
