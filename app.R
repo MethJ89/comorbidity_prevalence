@@ -60,8 +60,7 @@ library(readr)
 ##### IMPORT AND LOAD DATA ##### 
 
 ### Load data
-# Combined_comorbidity_age_region <- read_excel("../Data/Combined_comorbidity_age_region.xlsx")
-Combined_comorbidity_age_region <- read_csv("../Data/Combined_comorbidity_age_region.csv")
+Combined_comorbidity_age_region <- read_csv("data/Combined_comorbidity_age_region.csv")
 
 # Rename file 
 data <- Combined_comorbidity_age_region
